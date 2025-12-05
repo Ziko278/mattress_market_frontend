@@ -1,15 +1,57 @@
+// app/product/[slug]/page.js
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/shared/ProductCard';
-import { apiService } from '@/lib/api';
-import { CURRENCY } from '@/lib/constants';
+import { apiService } from '@/lib/api'; // Assuming this has the fetch logic
+// 💡 FIX: Import Constants directly
+import { API_BASE_URL, CURRENCY } from '@/lib/constants'; // Assuming constants.js is in '@/lib/constants'
 
-// 💡 Conceptual Cart Hook Import: You would implement this in a file like '@/hooks/useCart.js'
-// For this fixed code, the original localStorage logic remains, but is encapsulated in helper functions
-// to simulate the logic separation.
+// ------------------------------------------------------------------
+// 💡 REQUIRED FIX FOR BUILD ERROR (generateStaticParams)
+// ------------------------------------------------------------------
+
+// 1. Define the server-side logic needed to fetch all slugs.
+const getProductSlugs = async () => {
+  try {
+    // 💡 FIX: Use the imported API_BASE_URL for a raw fetch if apiService causes issues,
+    // or rely on apiService.getProductsList() if it works on the server.
+    // For reliability in static exports, we often use a direct fetch here:
+    const response = await fetch(`${API_BASE_URL}/products/`); 
+    if (!response.ok) {
+        throw new Error(`Failed to fetch product list: ${response.statusText}`);
+    }
+    const data = await response.json();
+    
+    // Assuming the API returns an array of objects, each containing a 'slug' field.
+    return data.map(product => ({
+      slug: product.slug, 
+    }));
+  } catch (error) {
+    console.error('Failed to fetch product slugs for static generation:', error);
+    // Return an empty array to gracefully handle the build if products can't be fetched
+    return [];
+  }
+};
+
+/**
+ * Next.js function required for dynamic routes with static export ('output: export').
+ * It pre-renders the paths for all product detail pages.
+ */
+export async function generateStaticParams() {
+    const slugs = await getProductSlugs();
+    // Logging for build debugging
+    console.log(`Generated ${slugs.length} static paths for products.`); 
+    return slugs;
+}
+
+
+// ------------------------------------------------------------------
+// Client Component Code (ProductDetailPage)
+// ------------------------------------------------------------------
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -63,7 +105,6 @@ export default function ProductDetailPage() {
         setRelatedProducts(relatedRes.data);
       } catch (error) {
         console.error('Error fetching product:', error);
-        // Optionally show an error notification if the product fails to load
       } finally {
         setLoading(false);
       }
@@ -72,11 +113,12 @@ export default function ProductDetailPage() {
     if (params.slug) {
       fetchProduct();
     }
-  }, [params.slug]);
+  }, [params.slug]); 
 
   // 💡 MODIFIED: Helper function to check if a variant is in the cart
   const isVariantInCart = useCallback(() => {
     if (!selectedVariant) return false;
+    // Client-side logic for cart
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     return cart.some(item => item.variant_id === selectedVariant.id);
   }, [selectedVariant]);
@@ -132,7 +174,6 @@ export default function ProductDetailPage() {
       });
       showNotification('Review submitted for approval!', 'success');
       setReviewForm({ customer_name: '', email: '', rating: 5, comment: '' });
-      // NOTE: You might want to re-fetch product data here to update the reviews list
     } catch (error) {
       console.error('Error submitting review:', error);
       showNotification('Failed to submit review.', 'danger');
@@ -227,7 +268,7 @@ export default function ProductDetailPage() {
                         className={`flex-shrink-0 border-2 rounded p-1 ${
                           selectedImage === index ? 'border-primary' : 'border-secondary'
                         }`}
-                        style={{ background: 'white' }} // Ensure background is white for contrast
+                        style={{ background: 'white' }} 
                       >
                         <img
                           src={img.image}
