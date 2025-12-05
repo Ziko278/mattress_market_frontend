@@ -1,80 +1,70 @@
-// Import necessary components and functions
+// /app/product/[slug]/page.js
+
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
-import { apiService } from '@/lib/api'; // Ensure this can run on the server
-import CommentForm from './CommentForm'; // We will create this next
 
-// Generate static params for all blog posts at build time
+// --- STATIC GENERATION ---
+
+// This function tells Next.js which product pages to build.
 export async function generateStaticParams() {
   try {
-    // IMPORTANT: You need an API endpoint to fetch all post slugs.
-    // Assuming `apiService.getAllPosts()` returns an array of posts with a 'slug' field.
-    // If you don't have this, create one in your Django backend.
-    const postsResponse = await apiService.getAllPosts();
-    
-    // If getAllPosts() doesn't exist, you might need to create it or use a fetch call:
-    // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/posts/`);
-    // const posts = await res.json();
+    // IMPORTANT: Change '/products/' to your API endpoint that lists all products.
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/`, {
+      next: { revalidate: 3600 }, // Revalidate every hour
+    });
 
-    return postsResponse.data.map((post) => ({
-      slug: post.slug,
+    if (!res.ok) {
+      throw new Error('Failed to fetch products for static generation');
+    }
+
+    const products = await res.json();
+    return products.map((product) => ({
+      slug: product.slug,
     }));
   } catch (error) {
-    console.error('Error generating static params for blog:', error);
-    // Return an empty array to prevent the build from failing,
-    // but no pages will be generated.
+    console.error('Error generating static params for products:', error);
     return [];
   }
 }
 
-// Generate metadata for each page (great for SEO)
+// This function generates SEO tags for each product page.
 export async function generateMetadata({ params }) {
   try {
-    const postResponse = await apiService.getBlogPost(params.slug);
-    const post = postResponse.data;
+    // IMPORTANT: Change '/products/slug/' to your API endpoint for a single product.
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${params.slug}/`);
+    const product = await res.json();
 
     return {
-      title: post.title,
-      description: post.excerpt,
-      openGraph: {
-        title: post.title,
-        description: post.excerpt,
-        images: [post.featured_image],
-      },
+      title: product.name,
+      description: product.short_description || product.description,
     };
   } catch (error) {
-    console.error('Error generating metadata:', error);
     return {
-      title: 'Blog Post',
+      title: 'Product',
     };
   }
 }
 
-// The main page component is now an async Server Component
-export default async function BlogDetailPage({ params }) {
-  let post = null;
-  let recentPosts = [];
+// --- PAGE COMPONENT ---
+
+export default async function ProductDetailPage({ params }) {
+  let product = null;
 
   try {
-    // Fetch data in parallel on the server before rendering
-    const [postResponse, recentResponse] = await Promise.all([
-      apiService.getBlogPost(params.slug),
-      apiService.getRecentPosts(),
-    ]);
-    post = postResponse.data;
-    recentPosts = recentResponse.data;
+    // IMPORTANT: Change this URL to your single product API endpoint.
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${params.slug}/`);
+    product = await res.json();
   } catch (error) {
-    console.error('Error fetching post data:', error);
+    console.error('Error fetching product data:', error);
   }
 
-  // Handle 404 case if post is not found
-  if (!post) {
+  if (!product) {
     return (
       <Layout>
         <div className="container mx-auto px-6 md:px-8 py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">Post Not Found</h1>
-          <Link href="/blog" className="text-primary hover:underline">
-            Back to Blog
+          <h1 className="text-3xl font-bold mb-4">Product Not Found</h1>
+          <Link href="/products" className="text-primary hover:underline">
+            Back to Products
           </Link>
         </div>
       </Layout>
@@ -85,160 +75,56 @@ export default async function BlogDetailPage({ params }) {
     <Layout>
       <div className="bg-lightGray min-h-screen py-8">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             {/* Breadcrumb */}
             <nav className="mb-6 text-sm text-gray-600">
-              <Link href="/" className="hover:text-primary transition-colors duration-300">
-                Home
-              </Link>
+              <Link href="/" className="hover:text-primary">Home</Link>
               <span className="mx-2">/</span>
-              <Link href="/blog" className="hover:text-primary transition-colors duration-300">
-                Blog
-              </Link>
+              <Link href="/products" className="hover:text-primary">Products</Link>
               <span className="mx-2">/</span>
-              <span className="text-gray-900">{post.title}</span>
+              <span className="text-gray-900">{product.name}</span>
             </nav>
 
-            {/* Post Header */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <div className="mb-4">
-                <span className="bg-primary text-white text-sm font-bold px-4 py-2 rounded-full">
-                  {post.category.title}
-                </span>
-              </div>
-
-              <h1 className="text-3xl md:text-4xl font-bold text-darkGray mb-4">
-                {post.title}
-              </h1>
-
-              <div className="flex items-center gap-6 text-gray-600 mb-6">
-                <span>📅 {new Date(post.created_at).toLocaleDateString()}</span>
-                <span>👁️ {post.view_count} views</span>
-                <span>💬 {post.comments.length} comments</span>
-              </div>
-
-              {/* Featured Image */}
-              <div className="rounded-xl overflow-hidden mb-6">
-                <img
-                  src={post.featured_image || '/placeholder-blog.jpg'}
-                  alt={post.title}
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-
-              {/* Excerpt */}
-              <p className="text-xl text-gray-700 mb-6 leading-relaxed">{post.excerpt}</p>
-
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="bg-lightGray text-gray-700 text-sm px-3 py-1 rounded-full"
-                    >
-                      #{tag.title}
-                    </span>
-                  ))}
+            <div className="bg-white rounded-xl shadow-md p-8 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* Product Image */}
+                <div className="rounded-xl overflow-hidden">
+                  <img
+                    src={product.featured_image || '/placeholder-product.jpg'}
+                    alt={product.name}
+                    className="w-full h-auto object-cover"
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Post Content */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <div className="prose max-w-none">
-                {/* NOTE: Your original content rendering was basic.
-                  If `post.content` is a rich JSON from a editor like TipTap,
-                  you'll need a dedicated renderer component here. */}
-                <div
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                  className="text-gray-700 leading-relaxed"
-                />
-              </div>
+                {/* Product Details */}
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-darkGray mb-4">
+                    {product.name}
+                  </h1>
 
-              {/* Share Buttons */}
-              <div className="mt-8 pt-8 border-t">
-                <h3 className="text-lg font-bold text-darkGray mb-4">Share this post:</h3>
-                <div className="flex gap-4">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300">
-                    📘 Facebook
+                  <p className="text-2xl font-semibold text-primary mb-4">
+                    ${product.price}
+                  </p>
+
+                  <div
+                    className="prose max-w-none text-gray-700 mb-6"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
+
+                  {/* Add to Cart Button or other actions */}
+                  <button className="w-full bg-primary hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300">
+                    Add to Cart
                   </button>
-                  <button className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300">
-                    🐦 Twitter
-                  </button>
-                  <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300">
-                    💬 WhatsApp
-                  </button>
+
+                  {/* Product Meta */}
+                  <div className="mt-8 pt-8 border-t space-y-2">
+                    <p className="text-gray-600"><strong>SKU:</strong> {product.sku || 'N/A'}</p>
+                    <p className="text-gray-600"><strong>Category:</strong> {product.category?.name || 'N/A'}</p>
+                    <p className="text-gray-600"><strong>Availability:</strong> <span className="text-green-600 font-semibold">In Stock</span></p>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Comments Section */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-bold text-darkGray mb-6">
-                Comments ({post.comments.length})
-              </h2>
-
-              {/* Display Comments */}
-              {post.comments.length > 0 ? (
-                <div className="space-y-6 mb-8">
-                  {post.comments.map((comment) => (
-                    <div key={comment.id} className="border-b pb-6 last:border-b-0">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                          {comment.full_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{comment.full_name}</p>
-                          <p className="text-sm text-gray-600">
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-gray-700 ml-13">{comment.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-600 mb-8">
-                  No comments yet. Be the first to comment!
-                </p>
-              )}
-
-              {/* Comment Form - Now a separate Client Component */}
-              <div className="border-t pt-8">
-                <h3 className="text-xl font-bold text-darkGray mb-4">Leave a Comment</h3>
-                <CommentForm postId={post.id} />
-              </div>
-            </div>
-
-            {/* Related Posts */}
-            {recentPosts.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-8">
-                <h2 className="text-2xl font-bold text-darkGray mb-6">Recent Posts</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {recentPosts.slice(0, 3).map((relatedPost) => (
-                    <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
-                      <div className="group">
-                        <div className="rounded-lg overflow-hidden mb-3">
-                          <img
-                            src={relatedPost.featured_image || '/placeholder-blog.jpg'}
-                            alt={relatedPost.title}
-                            className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                        <h3 className="font-bold text-gray-900 group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                          {relatedPost.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {new Date(relatedPost.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
