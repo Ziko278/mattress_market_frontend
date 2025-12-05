@@ -1,57 +1,11 @@
-// app/product/[slug]/page.js
-
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/shared/ProductCard';
-import { apiService } from '@/lib/api'; // Assuming this has the fetch logic
-// 💡 FIX: Import Constants directly
-import { API_BASE_URL, CURRENCY } from '@/lib/constants'; // Assuming constants.js is in '@/lib/constants'
-
-// ------------------------------------------------------------------
-// 💡 REQUIRED FIX FOR BUILD ERROR (generateStaticParams)
-// ------------------------------------------------------------------
-
-// 1. Define the server-side logic needed to fetch all slugs.
-const getProductSlugs = async () => {
-  try {
-    // 💡 FIX: Use the imported API_BASE_URL for a raw fetch if apiService causes issues,
-    // or rely on apiService.getProductsList() if it works on the server.
-    // For reliability in static exports, we often use a direct fetch here:
-    const response = await fetch(`${API_BASE_URL}/products/`); 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch product list: ${response.statusText}`);
-    }
-    const data = await response.json();
-    
-    // Assuming the API returns an array of objects, each containing a 'slug' field.
-    return data.map(product => ({
-      slug: product.slug, 
-    }));
-  } catch (error) {
-    console.error('Failed to fetch product slugs for static generation:', error);
-    // Return an empty array to gracefully handle the build if products can't be fetched
-    return [];
-  }
-};
-
-/**
- * Next.js function required for dynamic routes with static export ('output: export').
- * It pre-renders the paths for all product detail pages.
- */
-export async function generateStaticParams() {
-    const slugs = await getProductSlugs();
-    // Logging for build debugging
-    console.log(`Generated ${slugs.length} static paths for products.`); 
-    return slugs;
-}
-
-
-// ------------------------------------------------------------------
-// Client Component Code (ProductDetailPage)
-// ------------------------------------------------------------------
+import { apiService } from '@/lib/api';
+import { CURRENCY } from '@/lib/constants';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -62,11 +16,6 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
-  
-  // 💡 NEW: Unified state for notifications
-  const [notification, setNotification] = useState(null); // { message: string, type: 'success' | 'danger' | 'warning' }
-  const [isCartActionLoading, setIsCartActionLoading] = useState(false);
-  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
 
   // Review form state
   const [reviewForm, setReviewForm] = useState({
@@ -75,32 +24,19 @@ export default function ProductDetailPage() {
     rating: 5,
     comment: '',
   });
-  
-  // 💡 NEW: Helper function for unified notification display
-  const showNotification = useCallback((message, type = 'success') => {
-    setNotification({ message, type });
-  }, []);
-
-  // Effect to hide notification after a few seconds
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => {
-        setNotification(null);
-      }, 3000); // Hide after 3 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await apiService.getProductDetail(params.slug);
         setProduct(response.data);
-
+        
+        // Set first variant as selected
         if (response.data.variants && response.data.variants.length > 0) {
           setSelectedVariant(response.data.variants[0]);
         }
 
+        // Fetch related products
         const relatedRes = await apiService.getRelatedProducts(response.data.id);
         setRelatedProducts(relatedRes.data);
       } catch (error) {
@@ -113,36 +49,25 @@ export default function ProductDetailPage() {
     if (params.slug) {
       fetchProduct();
     }
-  }, [params.slug]); 
+  }, [params.slug]);
 
-  // 💡 MODIFIED: Helper function to check if a variant is in the cart
-  const isVariantInCart = useCallback(() => {
-    if (!selectedVariant) return false;
-    // Client-side logic for cart
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    return cart.some(item => item.variant_id === selectedVariant.id);
-  }, [selectedVariant]);
-
-  // 💡 MODIFIED: Combined handler for adding/removing from cart
-  const handleCartAction = () => {
+  const handleAddToCart = () => {
     if (!selectedVariant) {
-      showNotification('Please select a variant first.', 'warning');
+      alert('Please select a size');
       return;
     }
-    
-    setIsCartActionLoading(true);
 
+    // Get existing cart
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Check if item already exists
     const existingIndex = cart.findIndex(
       (item) => item.variant_id === selectedVariant.id
     );
 
     if (existingIndex > -1) {
-      // Remove item from cart
-      const newCart = cart.filter(item => item.variant_id !== selectedVariant.id);
-      localStorage.setItem('cart', JSON.stringify(newCart));
-      window.dispatchEvent(new Event('cartUpdated'));
-      showNotification('Item removed from cart.', 'success');
+      // Update quantity
+      cart[existingIndex].quantity += quantity;
     } else {
       // Add new item
       cart.push({
@@ -155,46 +80,47 @@ export default function ProductDetailPage() {
         quantity: quantity,
         image: product.images[0]?.image || null,
       });
-      localStorage.setItem('cart', JSON.stringify(cart));
-      window.dispatchEvent(new Event('cartUpdated'));
-      showNotification('Added to cart!', 'success');
     }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
     
-    setIsCartActionLoading(false);
+    // Update cart count in header (trigger re-render)
+    window.dispatchEvent(new Event('cartUpdated'));
+    
+    alert('Added to cart!');
   };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    setIsReviewSubmitting(true);
-    
     try {
       await apiService.createReview({
         ...reviewForm,
         product: product.id,
       });
-      showNotification('Review submitted for approval!', 'success');
-      setReviewForm({ customer_name: '', email: '', rating: 5, comment: '' });
+      alert('Review submitted for approval!');
+      setReviewForm({
+        customer_name: '',
+        email: '',
+        rating: 5,
+        comment: '',
+      });
     } catch (error) {
       console.error('Error submitting review:', error);
-      showNotification('Failed to submit review.', 'danger');
-    } finally {
-      setIsReviewSubmitting(false);
+      alert('Failed to submit review');
     }
   };
 
   if (loading) {
     return (
       <Layout>
-        {/* Simplified and consistent placeholder styles */}
-        <div className="container py-5">
-          <div className="placeholder-glow">
-            <div className="row g-4">
-              <div className="col-lg-6"><div className="placeholder rounded-3" style={{ height: '500px' }}></div></div>
-              <div className="col-lg-6">
-                <div className="placeholder-lg p-3 mb-3 bg-gray-200 rounded"></div>
-                <div className="placeholder p-1 mb-2 w-75 bg-gray-200 rounded"></div>
-                <div className="placeholder p-1 mb-4 w-50 bg-gray-200 rounded"></div>
-                <div className="placeholder p-4 mb-4 bg-gray-200 rounded"></div>
+        <div className="container mx-auto px-6 md:px-8 py-16">
+          <div className="animate-pulse">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="h-96 bg-gray-200 rounded-xl"></div>
+              <div className="space-y-4">
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-12 bg-gray-200 rounded w-1/3"></div>
               </div>
             </div>
           </div>
@@ -206,319 +132,399 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <Layout>
-        <div className="container py-5 text-center">
-          <h1 className="mb-4">Product Not Found</h1>
-          <a href="/shop" className="btn btn-primary">Back to Shop</a>
+        <div className="container mx-auto px-6 md:px-8 py-16 text-center">
+          <h1 className="text-3xl font-bold mb-4">Product Not Found</h1>
+          <a href="/shop" className="text-primary hover:underline">
+            Back to Shop
+          </a>
         </div>
       </Layout>
     );
   }
 
-  const inCart = isVariantInCart();
-
   return (
     <Layout>
-      {/* 💡 NEW: Notification Display using unified state */}
-      {notification && (
-        <div className={`container py-2`}>
-          <div className={`alert alert-${notification.type} alert-dismissible fade show`} role="alert">
-            {notification.message}
-            <button type="button" className="btn-close" onClick={() => setNotification(null)} aria-label="Close"></button>
-          </div>
-        </div>
-      )}
-
-      {/* Breadcrumb - Keep this clean */}
-      <div className="page-title">
-        <div className="container">
-          <nav className="d-flex justify-content-between">
-            <h1>{product.name}</h1>
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="/">Home</a></li>
-              <li className="breadcrumb-item"><a href="/shop">Shop</a></li>
-              <li className="breadcrumb-item active">{product.name}</li>
-            </ol>
+      <div className="bg-lightGray min-h-screen py-8">
+        <div className="container mx-auto px-6 md:px-8">
+          {/* Breadcrumb */}
+          <nav className="mb-6 text-sm text-gray-600">
+            <a href="/" className="hover:text-primary transition-colors duration-300">Home</a>
+            <span className="mx-2">/</span>
+            <a href="/shop" className="hover:text-primary transition-colors duration-300">Shop</a>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900">{product.name}</span>
           </nav>
-        </div>
-      </div>
 
-      <div className="container py-5">
-        <div className="row">
           {/* Product Details Section */}
-          <div className="col-lg-6">
-            {/* Image Gallery component could go here */}
-            <div className="card border-0 shadow-sm mb-4">
-              <div className="card-body p-0">
+          <div className="bg-white rounded-xl shadow-md p-6 md:p-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Image Gallery */}
+              <div>
                 {/* Main Image */}
-                <div className="ratio ratio-1x1">
+                <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4">
                   <img
                     src={product.images[selectedImage]?.image || '/placeholder-product.jpg'}
                     alt={product.name}
-                    className="img-fluid object-fit-cover rounded-top"
+                    className="w-full h-full object-cover"
                   />
                 </div>
 
                 {/* Thumbnail Images */}
                 {product.images && product.images.length > 1 && (
-                  <div className="d-flex gap-2 p-3 overflow-auto">
+                  <div className="grid grid-cols-4 gap-4">
                     {product.images.map((img, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`flex-shrink-0 border-2 rounded p-1 ${
-                          selectedImage === index ? 'border-primary' : 'border-secondary'
+                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                          selectedImage === index
+                            ? 'border-primary scale-105'
+                            : 'border-gray-200 hover:border-gray-400'
                         }`}
-                        style={{ background: 'white' }} 
                       >
                         <img
                           src={img.image}
                           alt={`${product.name} ${index + 1}`}
-                          className="img-fluid"
-                          style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+                          className="w-full h-full object-cover"
                         />
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Product Info */}
-          <div className="col-lg-6">
-            <div className="card border-0 shadow-sm mb-4">
-              <div className="card-body">
-                {/* Brand and Name */}
-                <p className="text-uppercase text-muted small mb-2">{product.brand.name}</p>
-                <h2 className="card-title fw-bold mb-3">{product.name}</h2>
-                <p className="mb-3">Category: <span className="fw-semibold">{product.category.title}</span></p>
+              {/* Product Info */}
+              <div>
+                {/* Brand */}
+                <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                  {product.brand.name}
+                </p>
+
+                {/* Product Name */}
+                <h1 className="text-3xl md:text-4xl font-bold text-darkGray mb-4">
+                  {product.name}
+                </h1>
+
+                {/* Category */}
+                <p className="text-gray-600 mb-4">
+                  Category: <span className="font-semibold">{product.category.title}</span>
+                </p>
 
                 {/* Rating */}
                 {product.average_rating > 0 && (
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <div className="text-warning">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex text-yellow-400">
                       {'★'.repeat(Math.round(product.average_rating))}
                       {'☆'.repeat(5 - Math.round(product.average_rating))}
                     </div>
-                    <span className="text-muted">({product.reviews.length} reviews)</span>
+                    <span className="text-gray-600">
+                      ({product.reviews.length} reviews)
+                    </span>
                   </div>
                 )}
-                
+
                 {/* Price */}
-                <div className="mb-4">
+                <div className="mb-6">
                   {selectedVariant ? (
-                    <h3 className="text-primary">{CURRENCY}{Number(selectedVariant.price).toLocaleString()}</h3>
+                    <div className="text-3xl font-bold text-primary">
+                      {CURRENCY}{Number(selectedVariant.price).toLocaleString()}
+                    </div>
                   ) : (
-                    <h3 className="text-muted">Select a variant to see price</h3>
+                    <div className="text-2xl font-bold text-primary">
+                      Select size to see price
+                    </div>
                   )}
                 </div>
 
-                {/* Variant Selection */}
+                {/* Size Selection */}
                 {product.variants && product.variants.length > 0 && (
-                  <div className="mb-4">
-                    <label htmlFor="variantSelect" className="form-label fw-semibold">Select Variant</label>
-                    <select
-                      id="variantSelect"
-                      value={selectedVariant?.id || ''}
-                      onChange={(e) => {
-                        const variant = product.variants.find(v => v.id === parseInt(e.target.value));
-                        setSelectedVariant(variant);
-                        setQuantity(1); // Reset quantity on variant change for cleaner UX
-                      }}
-                      className="form-select"
-                    >
-                      {/* Optional: Add a placeholder option if needed */}
-                      {!selectedVariant && <option value="" disabled>Choose a size...</option>}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Select Size / Variant
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {product.variants.map((variant) => (
-                        <option key={variant.id} value={variant.id}>
-                          {variant.size_name} - {CURRENCY}{Number(variant.price).toLocaleString()}
-                        </option>
+                        <button
+                          key={variant.id}
+                          onClick={() => setSelectedVariant(variant)}
+                          className={`p-4 border-2 rounded-lg transition-all duration-300 ${
+                            selectedVariant?.id === variant.id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-gray-300 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-semibold text-gray-900">
+                            {variant.size_name}
+                          </div>
+                          {variant.thickness && (
+                            <div className="text-sm text-gray-600">{variant.thickness}</div>
+                          )}
+                          <div className="text-sm font-bold text-primary mt-1">
+                            {CURRENCY}{Number(variant.price).toLocaleString()}
+                          </div>
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 )}
 
                 {/* Quantity */}
-                <div className="mb-4">
-                  <label htmlFor="quantityInput" className="form-label fw-semibold">Quantity</label>
-                  <div className="input-group" style={{ width: '150px' }}>
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="btn btn-outline-secondary" type="button" disabled={quantity <= 1}>-</button>
-                    <input 
-                      id="quantityInput" 
-                      type="number" 
-                      min="1"
-                      value={quantity} 
-                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} 
-                      className="form-control text-center" 
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Quantity
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:border-primary transition-colors duration-300"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-20 h-10 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
                     />
-                    <button onClick={() => setQuantity(quantity + 1)} className="btn btn-outline-secondary" type="button">+</button>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:border-primary transition-colors duration-300"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="d-grid gap-2 d-md-flex mb-4">
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
                   <button
-                    onClick={handleCartAction}
-                    className={`btn flex-grow-1 ${inCart ? 'btn-danger' : 'btn-primary'}`}
-                    disabled={!selectedVariant || isCartActionLoading}
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-primary hover:bg-blue-900 text-white py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105"
                   >
-                    {isCartActionLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        {inCart ? 'Removing...' : 'Adding...'}
-                      </>
-                    ) : (
-                      <>
-                        <i className={`bi ${inCart ? 'bi-cart-dash' : 'bi-cart-plus'} me-2`}></i>
-                        {inCart ? 'Remove from Cart' : 'Add to Cart'}
-                      </>
-                    )}
+                    🛒 Add to Cart
                   </button>
-                  <button className="btn btn-outline-secondary">
-                    <i className="bi bi-heart me-2"></i> Wishlist
+                  <button className="sm:w-auto px-6 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-lg font-semibold transition-all duration-300">
+                    ❤️ Wishlist
                   </button>
                 </div>
 
                 {/* Contact Options */}
-                <div className="border-top pt-4">
-                  <p className="text-muted mb-3">Need help? Contact us:</p>
-                  <div className="d-grid gap-2 d-md-flex">
-                    <a href="tel:+2348012345678" className="btn btn-outline-dark flex-grow-1">
-                      <i className="bi bi-telephone-fill me-2"></i> Call
+                <div className="border-t pt-6">
+                  <p className="text-sm text-gray-600 mb-3">Need help? Contact us:</p>
+                  <div className="flex gap-4">
+                    <a
+                      href="tel:+2348012345678"
+                      className="flex-1 bg-accent/10 hover:bg-accent/20 text-accent py-3 rounded-lg font-semibold text-center transition-all duration-300"
+                    >
+                      📞 Call
                     </a>
-                    <a href="https://wa.me/2348012345678" target="_blank" rel="noopener noreferrer" className="btn btn-success flex-grow-1">
-                      <i className="bi bi-whatsapp me-2"></i> WhatsApp
+                    <a
+                      href="https://wa.me/2348012345678"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-3 rounded-lg font-semibold text-center transition-all duration-300"
+                    >
+                      💬 WhatsApp
                     </a>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Tabs Section */}
-        <div className="row mt-5">
-          <div className="col-12">
-            <div className="card border-0 shadow-sm">
-              {/* Tab Headers */}
-              <ul className="nav nav-tabs" role="tablist">
+          {/* Tabs Section */}
+          <div className="bg-white rounded-xl shadow-md mb-8">
+            {/* Tab Headers */}
+            <div className="border-b border-gray-200">
+              <div className="flex">
                 {['description', 'specifications', 'reviews'].map((tab) => (
-                  <li className="nav-item" role="presentation" key={tab}>
-                    <button 
-                      className={`nav-link ${activeTab === tab ? 'active' : ''}`} 
-                      onClick={() => setActiveTab(tab)} 
-                      type="button" 
-                      role="tab"
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)} ({tab === 'reviews' ? product.reviews.length : ''})
-                    </button>
-                  </li>
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 py-4 text-center font-semibold transition-all duration-300 ${
+                      activeTab === tab
+                        ? 'text-primary border-b-2 border-primary'
+                        : 'text-gray-600 hover:text-primary'
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
                 ))}
-              </ul>
+              </div>
+            </div>
 
-              {/* Tab Content */}
-              <div className="card-body">
-                {/* Description Tab */}
-                {activeTab === 'description' && <div className="tab-pane fade show active"><p className="lead">{product.description}</p></div>}
+            {/* Tab Content */}
+            <div className="p-6 md:p-8">
+              {/* Description Tab */}
+              {activeTab === 'description' && (
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {product.description}
+                  </p>
+                </div>
+              )}
 
-                {/* Specifications Tab */}
-                {activeTab === 'specifications' && (
-                  <div className="tab-pane fade show active">
-                    <ul className="list-group list-group-flush">
-                      <li className="list-group-item d-flex justify-content-between"><span className="fw-semibold">Brand:</span><span>{product.brand.name}</span></li>
-                      <li className="list-group-item d-flex justify-content-between"><span className="fw-semibold">Category:</span><span>{product.category.title}</span></li>
-                      {product.weight && <li className="list-group-item d-flex justify-content-between"><span className="fw-semibold">Weight:</span><span>{product.weight.weight}</span></li>}
-                      <li className="list-group-item d-flex justify-content-between"><span className="fw-semibold">Available Sizes:</span><span>{product.variants.map((v) => v.size_name).join(', ')}</span></li>
-                    </ul>
+              {/* Specifications Tab */}
+              {activeTab === 'specifications' && (
+                <div className="space-y-4">
+                  <div className="flex border-b pb-3">
+                    <span className="w-1/3 font-semibold text-gray-700">Brand:</span>
+                    <span className="w-2/3 text-gray-600">{product.brand.name}</span>
                   </div>
-                )}
+                  <div className="flex border-b pb-3">
+                    <span className="w-1/3 font-semibold text-gray-700">Category:</span>
+                    <span className="w-2/3 text-gray-600">{product.category.title}</span>
+                  </div>
+                  {product.weight && (
+                    <div className="flex border-b pb-3">
+                      <span className="w-1/3 font-semibold text-gray-700">Weight:</span>
+                      <span className="w-2/3 text-gray-600">{product.weight.weight}</span>
+                    </div>
+                  )}
+                  <div className="flex border-b pb-3">
+                    <span className="w-1/3 font-semibold text-gray-700">Available Sizes:</span>
+                    <span className="w-2/3 text-gray-600">
+                      {product.variants.map((v) => v.size_name).join(', ')}
+                    </span>
+                  </div>
+                </div>
+              )}
 
-                {/* Reviews Tab */}
-                {activeTab === 'reviews' && (
-                  <div className="tab-pane fade show active">
-                    <h4 className="mb-4">Customer Reviews</h4>
+              {/* Reviews Tab */}
+              {activeTab === 'reviews' && (
+                <div>
+                  {/* Review List */}
+                  <div className="mb-8">
+                    <h3 className="text-xl font-bold mb-4">Customer Reviews</h3>
                     {product.reviews && product.reviews.length > 0 ? (
-                      <div className="mb-5">{product.reviews.map((review) => (
-                        <div key={review.id} className="border-bottom pb-3 mb-4">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-semibold">{review.customer_name}</span>
-                            <div className="text-warning">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</div>
+                      <div className="space-y-6">
+                        {product.reviews.map((review) => (
+                          <div key={review.id} className="border-b pb-6">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="font-semibold text-gray-900">
+                                {review.customer_name}
+                              </span>
+                              <div className="flex text-yellow-400">
+                                {'★'.repeat(review.rating)}
+                                {'☆'.repeat(5 - review.rating)}
+                              </div>
+                            </div>
+                            <p className="text-gray-700">{review.comment}</p>
+                            {review.image && (
+                              <img
+                                src={review.image}
+                                alt="Review"
+                                className="mt-3 w-32 h-32 object-cover rounded-lg"
+                              />
+                            )}
+                            <p className="text-sm text-gray-500 mt-2">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </p>
                           </div>
-                          <p className="mb-2">{review.comment}</p>
-                          {review.image && <img src={review.image} alt="Review" className="img-thumbnail mb-2" style={{ maxWidth: '150px' }} />}
-                          <p className="text-muted small mb-0">{new Date(review.created_at).toLocaleDateString()}</p>
-                        </div>
-                      ))}</div>
+                        ))}
+                      </div>
                     ) : (
-                      <p className="text-muted">No reviews yet. Be the first to review!</p>
+                      <p className="text-gray-600">No reviews yet. Be the first to review!</p>
                     )}
+                  </div>
 
-                    <hr />
-                    <h4 className="mb-4">Write a Review</h4>
-                    <form onSubmit={handleReviewSubmit} className="row g-3">
-                      <div className="col-md-6">
-                        <label htmlFor="reviewName" className="form-label">Your Name</label>
-                        <input id="reviewName" type="text" value={reviewForm.customer_name} onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })} required className="form-control" />
+                  {/* Review Form */}
+                  <div className="border-t pt-8">
+                    <h3 className="text-xl font-bold mb-4">Write a Review</h3>
+                    <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Your Name
+                          </label>
+                          <input
+                            type="text"
+                            value={reviewForm.customer_name}
+                            onChange={(e) =>
+                              setReviewForm({ ...reviewForm, customer_name: e.target.value })
+                            }
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            value={reviewForm.email}
+                            onChange={(e) =>
+                              setReviewForm({ ...reviewForm, email: e.target.value })
+                            }
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
+                          />
+                        </div>
                       </div>
-                      <div className="col-md-6">
-                        <label htmlFor="reviewEmail" className="form-label">Email</label>
-                        <input id="reviewEmail" type="email" value={reviewForm.email} onChange={(e) => setReviewForm({ ...reviewForm, email: e.target.value })} required className="form-control" />
-                      </div>
-                      <div className="col-12">
-                        <label className="form-label">Rating</label>
-                        <div className="d-flex gap-1 mb-3">
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Rating
+                        </label>
+                        <div className="flex gap-2">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            // 💡 Improved Rating UX using Bootstrap Icons and color change on hover
-                            <i 
-                              key={star} 
-                              className={`bi bi-star${star <= reviewForm.rating ? '-fill text-warning' : ''}`}
-                              onClick={() => setReviewForm({ ...reviewForm, rating: star })} 
-                              style={{ cursor: 'pointer', fontSize: '1.25rem', transition: 'color 0.2s' }}
-                              role="button"
-                              aria-label={`Rate ${star} stars`}
-                            ></i>
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                              className={`text-3xl ${
+                                star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
+                              }`}
+                            >
+                              ★
+                            </button>
                           ))}
                         </div>
                       </div>
-                      <div className="col-12">
-                        <label htmlFor="reviewComment" className="form-label">Your Review</label>
-                        <textarea id="reviewComment" value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} required rows="4" className="form-control"></textarea>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Your Review
+                        </label>
+                        <textarea
+                          value={reviewForm.comment}
+                          onChange={(e) =>
+                            setReviewForm({ ...reviewForm, comment: e.target.value })
+                          }
+                          required
+                          rows="4"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
+                        ></textarea>
                       </div>
-                      <div className="col-12">
-                        <button 
-                          type="submit" 
-                          className="btn btn-primary"
-                          disabled={isReviewSubmitting}
-                        >
-                          {isReviewSubmitting ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                              Submitting...
-                            </>
-                          ) : 'Submit Review'}
-                        </button>
-                      </div>
+
+                      <button
+                        type="submit"
+                        className="bg-primary hover:bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300"
+                      >
+                        Submit Review
+                      </button>
                     </form>
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Related Products */}
+          {relatedProducts.length > 0 && (
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-darkGray mb-6">
+                Related Products
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-5">
-            <h3 className="mb-4">Related Products</h3>
-            <div className="row g-4">
-              {relatedProducts.map((product) => (
-                <div key={product.id} className="col-sm-6 col-lg-3">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
