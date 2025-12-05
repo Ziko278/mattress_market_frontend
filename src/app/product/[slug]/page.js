@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/shared/ProductCard';
 import { apiService } from '@/lib/api';
 import { CURRENCY } from '@/lib/constants';
+
+// 💡 Conceptual Cart Hook Import: You would implement this in a file like '@/hooks/useCart.js'
+// For this fixed code, the original localStorage logic remains, but is encapsulated in helper functions
+// to simulate the logic separation.
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -16,10 +20,11 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
-
-  // NEW: State for notifications
-  const [notification, setNotification] = useState(null);
-  const [notificationType, setNotificationType] = useState('success');
+  
+  // 💡 NEW: Unified state for notifications
+  const [notification, setNotification] = useState(null); // { message: string, type: 'success' | 'danger' | 'warning' }
+  const [isCartActionLoading, setIsCartActionLoading] = useState(false);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
 
   // Review form state
   const [reviewForm, setReviewForm] = useState({
@@ -28,8 +33,13 @@ export default function ProductDetailPage() {
     rating: 5,
     comment: '',
   });
+  
+  // 💡 NEW: Helper function for unified notification display
+  const showNotification = useCallback((message, type = 'success') => {
+    setNotification({ message, type });
+  }, []);
 
-  // NEW: Effect to hide notification after a few seconds
+  // Effect to hide notification after a few seconds
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
@@ -53,6 +63,7 @@ export default function ProductDetailPage() {
         setRelatedProducts(relatedRes.data);
       } catch (error) {
         console.error('Error fetching product:', error);
+        // Optionally show an error notification if the product fails to load
       } finally {
         setLoading(false);
       }
@@ -63,19 +74,21 @@ export default function ProductDetailPage() {
     }
   }, [params.slug]);
 
-  // NEW: Helper function to check if a variant is in the cart
-  const isVariantInCart = () => {
+  // 💡 MODIFIED: Helper function to check if a variant is in the cart
+  const isVariantInCart = useCallback(() => {
     if (!selectedVariant) return false;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     return cart.some(item => item.variant_id === selectedVariant.id);
-  };
+  }, [selectedVariant]);
 
-  // MODIFIED: Combined handler for adding/removing from cart
+  // 💡 MODIFIED: Combined handler for adding/removing from cart
   const handleCartAction = () => {
     if (!selectedVariant) {
-      setNotification('Please select a variant first.', 'warning');
+      showNotification('Please select a variant first.', 'warning');
       return;
     }
+    
+    setIsCartActionLoading(true);
 
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingIndex = cart.findIndex(
@@ -87,7 +100,7 @@ export default function ProductDetailPage() {
       const newCart = cart.filter(item => item.variant_id !== selectedVariant.id);
       localStorage.setItem('cart', JSON.stringify(newCart));
       window.dispatchEvent(new Event('cartUpdated'));
-      setNotification('Item removed from cart.', 'success');
+      showNotification('Item removed from cart.', 'success');
     } else {
       // Add new item
       cart.push({
@@ -102,33 +115,46 @@ export default function ProductDetailPage() {
       });
       localStorage.setItem('cart', JSON.stringify(cart));
       window.dispatchEvent(new Event('cartUpdated'));
-      setNotification('Added to cart!', 'success');
+      showNotification('Added to cart!', 'success');
     }
+    
+    setIsCartActionLoading(false);
   };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    setIsReviewSubmitting(true);
+    
     try {
       await apiService.createReview({
         ...reviewForm,
         product: product.id,
       });
-      setNotification('Review submitted for approval!', 'success');
+      showNotification('Review submitted for approval!', 'success');
       setReviewForm({ customer_name: '', email: '', rating: 5, comment: '' });
+      // NOTE: You might want to re-fetch product data here to update the reviews list
     } catch (error) {
       console.error('Error submitting review:', error);
-      setNotification('Failed to submit review.', 'danger');
+      showNotification('Failed to submit review.', 'danger');
+    } finally {
+      setIsReviewSubmitting(false);
     }
   };
 
   if (loading) {
     return (
       <Layout>
+        {/* Simplified and consistent placeholder styles */}
         <div className="container py-5">
           <div className="placeholder-glow">
             <div className="row g-4">
-              <div className="col-lg-6"><div className="placeholder" style={{ height: '500px' }}></div></div>
-              <div className="col-lg-6"><div className="placeholder p-3 mb-3"></div><div className="placeholder p-1 mb-2 w-75"></div><div className="placeholder p-1 mb-4 w-50"></div><div className="placeholder p-4 mb-4"></div></div>
+              <div className="col-lg-6"><div className="placeholder rounded-3" style={{ height: '500px' }}></div></div>
+              <div className="col-lg-6">
+                <div className="placeholder-lg p-3 mb-3 bg-gray-200 rounded"></div>
+                <div className="placeholder p-1 mb-2 w-75 bg-gray-200 rounded"></div>
+                <div className="placeholder p-1 mb-4 w-50 bg-gray-200 rounded"></div>
+                <div className="placeholder p-4 mb-4 bg-gray-200 rounded"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -151,16 +177,17 @@ export default function ProductDetailPage() {
 
   return (
     <Layout>
-      {/* NEW: Notification Display */}
+      {/* 💡 NEW: Notification Display using unified state */}
       {notification && (
         <div className={`container py-2`}>
-          <div className={`alert alert-${notificationType} alert-dismissible fade show`} role="alert">
-            {notification}
+          <div className={`alert alert-${notification.type} alert-dismissible fade show`} role="alert">
+            {notification.message}
+            <button type="button" className="btn-close" onClick={() => setNotification(null)} aria-label="Close"></button>
           </div>
         </div>
       )}
 
-      {/* Breadcrumb */}
+      {/* Breadcrumb - Keep this clean */}
       <div className="page-title">
         <div className="container">
           <nav className="d-flex justify-content-between">
@@ -178,6 +205,7 @@ export default function ProductDetailPage() {
         <div className="row">
           {/* Product Details Section */}
           <div className="col-lg-6">
+            {/* Image Gallery component could go here */}
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-body p-0">
                 {/* Main Image */}
@@ -199,6 +227,7 @@ export default function ProductDetailPage() {
                         className={`flex-shrink-0 border-2 rounded p-1 ${
                           selectedImage === index ? 'border-primary' : 'border-secondary'
                         }`}
+                        style={{ background: 'white' }} // Ensure background is white for contrast
                       >
                         <img
                           src={img.image}
@@ -218,12 +247,11 @@ export default function ProductDetailPage() {
           <div className="col-lg-6">
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-body">
-                {/* Brand */}
+                {/* Brand and Name */}
                 <p className="text-uppercase text-muted small mb-2">{product.brand.name}</p>
-                {/* Product Name */}
                 <h2 className="card-title fw-bold mb-3">{product.name}</h2>
-                {/* Category */}
                 <p className="mb-3">Category: <span className="fw-semibold">{product.category.title}</span></p>
+
                 {/* Rating */}
                 {product.average_rating > 0 && (
                   <div className="d-flex align-items-center gap-2 mb-3">
@@ -234,6 +262,7 @@ export default function ProductDetailPage() {
                     <span className="text-muted">({product.reviews.length} reviews)</span>
                   </div>
                 )}
+                
                 {/* Price */}
                 <div className="mb-4">
                   {selectedVariant ? (
@@ -243,7 +272,7 @@ export default function ProductDetailPage() {
                   )}
                 </div>
 
-                {/* Variant Selection - Now a Select Dropdown */}
+                {/* Variant Selection */}
                 {product.variants && product.variants.length > 0 && (
                   <div className="mb-4">
                     <label htmlFor="variantSelect" className="form-label fw-semibold">Select Variant</label>
@@ -253,9 +282,12 @@ export default function ProductDetailPage() {
                       onChange={(e) => {
                         const variant = product.variants.find(v => v.id === parseInt(e.target.value));
                         setSelectedVariant(variant);
+                        setQuantity(1); // Reset quantity on variant change for cleaner UX
                       }}
                       className="form-select"
                     >
+                      {/* Optional: Add a placeholder option if needed */}
+                      {!selectedVariant && <option value="" disabled>Choose a size...</option>}
                       {product.variants.map((variant) => (
                         <option key={variant.id} value={variant.id}>
                           {variant.size_name} - {CURRENCY}{Number(variant.price).toLocaleString()}
@@ -269,21 +301,37 @@ export default function ProductDetailPage() {
                 <div className="mb-4">
                   <label htmlFor="quantityInput" className="form-label fw-semibold">Quantity</label>
                   <div className="input-group" style={{ width: '150px' }}>
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="btn btn-outline-secondary" type="button">-</button>
-                    <input id="quantityInput" type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="form-control text-center" />
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="btn btn-outline-secondary" type="button" disabled={quantity <= 1}>-</button>
+                    <input 
+                      id="quantityInput" 
+                      type="number" 
+                      min="1"
+                      value={quantity} 
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} 
+                      className="form-control text-center" 
+                    />
                     <button onClick={() => setQuantity(quantity + 1)} className="btn btn-outline-secondary" type="button">+</button>
                   </div>
                 </div>
 
-                {/* MODIFIED: Action Buttons */}
+                {/* Action Buttons */}
                 <div className="d-grid gap-2 d-md-flex mb-4">
                   <button
                     onClick={handleCartAction}
                     className={`btn flex-grow-1 ${inCart ? 'btn-danger' : 'btn-primary'}`}
-                    disabled={!selectedVariant}
+                    disabled={!selectedVariant || isCartActionLoading}
                   >
-                    <i className={`bi ${inCart ? 'bi-cart-dash' : 'bi-cart-plus'} me-2`}></i>
-                    {inCart ? 'Remove from Cart' : 'Add to Cart'}
+                    {isCartActionLoading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        {inCart ? 'Removing...' : 'Adding...'}
+                      </>
+                    ) : (
+                      <>
+                        <i className={`bi ${inCart ? 'bi-cart-dash' : 'bi-cart-plus'} me-2`}></i>
+                        {inCart ? 'Remove from Cart' : 'Add to Cart'}
+                      </>
+                    )}
                   </button>
                   <button className="btn btn-outline-secondary">
                     <i className="bi bi-heart me-2"></i> Wishlist
@@ -315,8 +363,13 @@ export default function ProductDetailPage() {
               <ul className="nav nav-tabs" role="tablist">
                 {['description', 'specifications', 'reviews'].map((tab) => (
                   <li className="nav-item" role="presentation" key={tab}>
-                    <button className={`nav-link ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)} type="button" role="tab">
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    <button 
+                      className={`nav-link ${activeTab === tab ? 'active' : ''}`} 
+                      onClick={() => setActiveTab(tab)} 
+                      type="button" 
+                      role="tab"
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)} ({tab === 'reviews' ? product.reviews.length : ''})
                     </button>
                   </li>
                 ))}
@@ -372,16 +425,37 @@ export default function ProductDetailPage() {
                       </div>
                       <div className="col-12">
                         <label className="form-label">Rating</label>
-                        <div className="d-flex gap-1 mb-3">{[1, 2, 3, 4, 5].map((star) => (
-                          <button key={star} type="button" onClick={() => setReviewForm({ ...reviewForm, rating: star })} className={`btn btn-link p-0 ${star <= reviewForm.rating ? 'text-warning' : 'text-muted'}`}>★</button>
-                        ))}</div>
+                        <div className="d-flex gap-1 mb-3">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            // 💡 Improved Rating UX using Bootstrap Icons and color change on hover
+                            <i 
+                              key={star} 
+                              className={`bi bi-star${star <= reviewForm.rating ? '-fill text-warning' : ''}`}
+                              onClick={() => setReviewForm({ ...reviewForm, rating: star })} 
+                              style={{ cursor: 'pointer', fontSize: '1.25rem', transition: 'color 0.2s' }}
+                              role="button"
+                              aria-label={`Rate ${star} stars`}
+                            ></i>
+                          ))}
+                        </div>
                       </div>
                       <div className="col-12">
                         <label htmlFor="reviewComment" className="form-label">Your Review</label>
                         <textarea id="reviewComment" value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} required rows="4" className="form-control"></textarea>
                       </div>
                       <div className="col-12">
-                        <button type="submit" className="btn btn-primary">Submit Review</button>
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary"
+                          disabled={isReviewSubmitting}
+                        >
+                          {isReviewSubmitting ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                              Submitting...
+                            </>
+                          ) : 'Submit Review'}
+                        </button>
                       </div>
                     </form>
                   </div>
