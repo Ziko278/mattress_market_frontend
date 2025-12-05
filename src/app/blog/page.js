@@ -1,15 +1,12 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
 
-export default function BlogPage() {
+function BlogContent() {
   const searchParams = useSearchParams();
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -193,6 +190,14 @@ export default function BlogPage() {
         </section>
       </div>
     </Layout>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BlogContent />
+    </Suspense>
   );
 }
 
