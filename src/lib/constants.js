@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'http://127.0.0.1:8000/api';
+export const API_BASE_URL = 'https://api.mattressmarket.ng/api';
 
 // Color Scheme
 export const COLORS = {

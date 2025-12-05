@@ -6,14 +6,17 @@ import { apiService } from '@/lib/api';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false); 
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false); // <--- NEW: State for mobile category dropdown
   const [isScrolled, setIsScrolled] = useState(false);
   const [siteInfo, setSiteInfo] = useState(null);
   const [categories, setCategories] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch site info and categories on component mount
+  // Fetch site info and categories (Logic remains the same)
   useEffect(() => {
+    // ... (your existing fetchData logic)
     const fetchData = async () => {
       try {
         const [siteResponse, categoriesResponse] = await Promise.all([
@@ -28,21 +31,17 @@ export default function Header() {
     };
     fetchData();
 
-    // Cart count management
     const updateCartCount = () => {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       setCartCount(cart.length);
     };
 
-    updateCartCount(); // Initial load
+    updateCartCount();
     window.addEventListener('cartUpdated', updateCartCount);
-    
-    return () => {
-      window.removeEventListener('cartUpdated', updateCartCount);
-    };
+    return () => window.removeEventListener('cartUpdated', updateCartCount);
   }, []);
 
-  // Handle scroll effect
+  // Handle scroll effect (Logic remains the same)
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -51,6 +50,34 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handler to close account menu when clicking outside (Logic remains the same)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isAccountOpen && !event.target.closest('.account-dropdown')) {
+        setIsAccountOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isAccountOpen]);
+
+  
+  // Handle Mobile Menu Toggle with animation
+  const handleMobileMenuToggle = () => {
+    const newState = !isMenuOpen;
+    setIsMenuOpen(newState);
+    setIsCategoryDropdownOpen(false); // Close nested category menu when closing main menu
+    
+    if (newState) {
+        document.body.classList.add('mobile-nav-active');
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.classList.remove('mobile-nav-active');
+        document.body.style.overflow = '';
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -58,207 +85,246 @@ export default function Header() {
     }
   };
 
+  const closeMenusAndNavigate = () => {
+      setIsAccountOpen(false);
+      setIsCategoryDropdownOpen(false); // Ensure nested menu closes
+      if (isMenuOpen) handleMobileMenuToggle();
+  };
+
+
   return (
     <>
-      {/* Top Bar */}
-      <div className="bg-primary text-white py-2 text-sm">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            {siteInfo && (
-              <>
-                <a href={`tel:${siteInfo.phone}`} className="hover:text-secondary transition">
-                  📞 {siteInfo.phone}
-                </a>
-                <a href={`mailto:${siteInfo.email}`} className="hover:text-secondary transition hidden md:block">
-                  ✉️ {siteInfo.email}
-                </a>
-              </>
-            )}
-          </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/track-order" className="hover:text-secondary transition">
-              Track Order
-            </Link>
-            {siteInfo?.whatsapp && (
-              <a 
-                href={`https://wa.me/${siteInfo.whatsapp}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-secondary transition"
-              >
-                💬 WhatsApp
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header */}
-      <header className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              {siteInfo?.logo ? (
-                <img src={siteInfo.logo} alt={siteInfo.site_name} className="h-12 w-auto" />
-              ) : (
-                <div className="text-2xl font-bold text-primary">
-                  Mattress<span className="text-secondary">Market</span>
+      <header id="header" className={`header position-relative ${isScrolled ? 'scrolled' : ''}`}>
+        
+        {/* Top Bar (Keep as is) */}
+        <div className="top-bar py-2 d-none d-lg-block">
+            {/* ... Top Bar content remains the same ... */}
+            <div className="container-fluid container-xl">
+                <div className="row align-items-center">
+                <div className="col-lg-6">
+                    <div className="d-flex align-items-center">
+                    {siteInfo && (
+                        <>
+                        <div className="top-bar-item me-4">
+                            <i className="bi bi-telephone-fill me-2"></i>
+                            <span>Support: </span>
+                            <a href={`tel:${siteInfo.phone}`}>{siteInfo.phone}</a>
+                        </div>
+                        <div className="top-bar-item">
+                            <i className="bi bi-envelope-fill me-2"></i>
+                            <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a>
+                        </div>
+                        </>
+                    )}
+                    </div>
                 </div>
-              )}
-            </Link>
 
-            {/* Search Bar - Desktop */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
-              <input
-                type="text"
-                placeholder="Search for mattresses, brands, categories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:border-primary"
-              />
-              <button 
-                type="submit"
-                className="bg-primary text-white px-6 py-2 rounded-r-lg hover:bg-blue-900 transition"
-              >
-                🔍
-              </button>
-            </form>
+                <div className="col-lg-6">
+                    <div className="d-flex justify-content-end">
+                    <div className="top-bar-item me-4">
+                        <Link href="/track-order">
+                        <i className="bi bi-truck me-2"></i>Track Order
+                        </Link>
+                    </div>
+                    {siteInfo?.whatsapp && (
+                        <div className="top-bar-item">
+                        <a href={`https://wa.me/${siteInfo.whatsapp}`} target="_blank" rel="noopener noreferrer">
+                            <i className="bi bi-whatsapp me-2"></i>WhatsApp
+                        </a>
+                        </div>
+                    )}
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+        {/* End Top Bar */}
 
-            {/* Icons */}
-            <div className="flex items-center space-x-6">
-              <Link href="/account" className="hidden md:flex items-center space-x-1 hover:text-primary transition">
-                <span className="text-2xl">👤</span>
-                <span className="text-sm">Account</span>
-              </Link>
+        {/* Main Header */}
+        <div className="main-header">
+          <div className="container-fluid container-xl">
+            <div className="d-flex py-3 align-items-center justify-content-between">
 
-              <Link href="/wishlist" className="hidden md:flex items-center space-x-1 hover:text-primary transition">
-                <span className="text-2xl">❤️</span>
-                <span className="text-sm">Wishlist</span>
-              </Link>
-
-              <Link href="/cart" className="flex items-center space-x-1 hover:text-primary transition relative">
-                <span className="text-2xl">🛒</span>
-                <span className="text-sm hidden md:block">Cart</span>
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
+              {/* Logo */}
+              <Link href="/" className="logo d-flex align-items-center" onClick={closeMenusAndNavigate}>
+                {siteInfo?.logo ? (
+                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '40px'}} />
+                ) : (
+                  <h1 className="sitename">Mattress<span>Market</span></h1>
                 )}
               </Link>
 
-              {/* Mobile Menu Toggle */}
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden text-2xl"
-              >
-                {isMenuOpen ? '✕' : '☰'}
-              </button>
+              {/* Search Form - Desktop (Keep as is) */}
+              <form className="search-form desktop-search-form" onSubmit={handleSearch}>
+                <div className="input-group">
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="Search for products..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button className="btn search-btn" type="submit">
+                    <i className="bi bi-search"></i>
+                  </button>
+                </div>
+              </form>
+
+              {/* Actions (Keep as is) */}
+              <div className="header-actions d-flex align-items-center justify-content-end">
+                
+                {/* Account (Dropdown logic remains the same) */}
+                <div className={`dropdown account-dropdown ${isAccountOpen ? 'show' : ''}`}>
+                  <button 
+                    className="header-action-btn" 
+                    onClick={() => setIsAccountOpen(prev => !prev)}
+                    aria-expanded={isAccountOpen}
+                  >
+                    <i className="bi bi-person"></i>
+                    <span className="action-text d-none d-md-inline-block">Account</span>
+                  </button>
+                  <div className={`dropdown-menu ${isAccountOpen ? 'show' : ''}`}> 
+                    <div className="dropdown-header">
+                      <h6>Welcome!</h6>
+                      <p className="mb-0">Manage your account</p>
+                    </div>
+                    <div className="dropdown-body">
+                      <Link className="dropdown-item d-flex align-items-center" href="/account" onClick={closeMenusAndNavigate}>
+                        <i className="bi bi-person-circle me-2"></i>
+                        <span>My Profile</span>
+                      </Link>
+                      <Link className="dropdown-item d-flex align-items-center" href="/orders" onClick={closeMenusAndNavigate}>
+                        <i className="bi bi-bag-check me-2"></i>
+                        <span>My Orders</span>
+                      </Link>
+                    </div>
+                    <div className="dropdown-footer">
+                      <Link href="/auth/login" className="btn btn-primary w-100 mb-2" onClick={closeMenusAndNavigate}>Sign In</Link>
+                      <Link href="/auth/register" className="btn btn-outline-primary w-100" onClick={closeMenusAndNavigate}>Register</Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wishlist and Cart (Keep as is) */}
+                <Link href="/wishlist" className="header-action-btn d-none d-md-flex" onClick={closeMenusAndNavigate}>
+                  <i className="bi bi-heart"></i>
+                  <span className="action-text d-none d-md-inline-block">Wishlist</span>
+                </Link>
+
+                <Link href="/cart" className="header-action-btn" onClick={closeMenusAndNavigate}>
+                  <i className="bi bi-cart3"></i>
+                  <span className="action-text d-none d-md-inline-block">Cart</span>
+                  <span className="badge">{cartCount}</span>
+                </Link>
+
+                {/* Mobile Navigation Toggle (Keep as is) */}
+                <i 
+                  className={`mobile-nav-toggle d-xl-none bi ${isMenuOpen ? 'bi-x' : 'bi-list'} me-0`}
+                  onClick={handleMobileMenuToggle}
+                ></i>
+
+              </div>
             </div>
           </div>
-
-          {/* Search Bar - Mobile */}
-          <form onSubmit={handleSearch} className="md:hidden mt-4 flex">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:border-primary"
-            />
-            <button 
-              type="submit"
-              className="bg-primary text-white px-4 py-2 rounded-r-lg"
-            >
-              🔍
-            </button>
-          </form>
         </div>
+        {/* End Main Header */}
+        
+        {/* Mobile Search Form (Always visible on mobile) (Keep as is) */}
+        <div className="container d-block d-md-none py-2">
+             <form className="search-form" onSubmit={handleSearch}>
+              <div className="input-group">
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Search products..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button className="btn search-btn" type="submit">
+                  <i className="bi bi-search"></i>
+                </button>
+              </div>
+            </form>
+        </div>
+        {/* End Mobile Search */}
 
         {/* Navigation */}
-        <nav className="bg-lightGray border-t border-gray-200">
-          <div className="container mx-auto px-4">
-            <ul className="hidden md:flex items-center justify-center space-x-8 py-3">
-              <li>
-                <Link href="/" className="hover:text-primary transition font-medium">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop" className="hover:text-primary transition font-medium">
-                  Shop
-                </Link>
-              </li>
-              <li className="relative group">
-                <button className="hover:text-primary transition font-medium">
-                  Categories ▼
-                </button>
-                <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                  {categories.slice(0, 5).map((cat) => (
-                    <Link
-                      key={cat.id}
-                      href={`/shop?category=${cat.id}`}
-                      className="block px-4 py-2 hover:bg-lightGray transition"
-                    >
-                      {cat.title}
-                    </Link>
-                  ))}
-                </div>
-              </li>
-              <li>
-                <Link href="/brands" className="hover:text-primary transition font-medium">
-                  Brands
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="hover:text-primary transition font-medium">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="hover:text-primary transition font-medium">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-primary transition font-medium">
-                  Contact
-                </Link>
-              </li>
-            </ul>
+        <div className="header-nav">
+          <div className="container-fluid container-xl position-relative">
+            <nav id="navmenu" className="navmenu">
+              <ul>
+                <li><Link href="/" className="active" onClick={closeMenusAndNavigate}>Home</Link></li>
+                <li><Link href="/shop" onClick={closeMenusAndNavigate}>Shop</Link></li>
+                
+                {/* Mega Menu for Categories - FIX 2: Added state for mobile toggle */}
+                <li className={`products-megamenu-1 dropdown ${isCategoryDropdownOpen ? 'active' : ''}`}>
+                  <Link 
+                    href="/shop"
+                    onClick={(e) => {
+                        // Only prevent navigation and toggle the dropdown on small screens (mobile menu active)
+                        if (isMenuOpen && window.innerWidth < 992) {
+                            e.preventDefault();
+                            setIsCategoryDropdownOpen(prev => !prev);
+                        } else {
+                            closeMenusAndNavigate();
+                        }
+                    }}
+                  >
+                    <span>Categories</span> <i className="bi bi-chevron-down toggle-dropdown"></i>
+                  </Link>
+                  
+                  {/* Desktop Mega Menu View (Keep as is) */}
+                  <div className="desktop-megamenu">
+                    <div className="megamenu-content">
+                      <div className="row g-3 p-3">
+                        {categories.slice(0, 8).map((cat) => (
+                          <div key={cat.id} className="col-lg-3 col-md-4 mb-3">
+                            <Link href={`/shop?category=${cat.id}`} className="card border-0 shadow-sm h-100 text-decoration-none" onClick={closeMenusAndNavigate}>
+                              <div className="position-relative" style={{height: '150px', overflow: 'hidden'}}>
+                                <img 
+                                  src={cat.image || '/assets/img/category-placeholder.jpg'} 
+                                  alt={cat.title} 
+                                  className="w-100 h-100 object-fit-cover"
+                                />
+                              </div>
+                              <div className="card-body text-center">
+                                <h6 className="card-title text-dark fw-bold mb-0">{cat.title}</h6>
+                                <small className="text-muted">{cat.product_count || 0} Products</small>
+                              </div>
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-center p-2 border-top">
+                        <Link href="/shop" className="btn btn-sm btn-outline-primary" onClick={closeMenusAndNavigate}>View All Categories</Link>
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Mobile Menu */}
-            {isMenuOpen && (
-              <div className="md:hidden py-4 space-y-2">
-                <Link href="/" className="block py-2 hover:text-primary transition">
-                  Home
-                </Link>
-                <Link href="/shop" className="block py-2 hover:text-primary transition">
-                  Shop
-                </Link>
-                <Link href="/brands" className="block py-2 hover:text-primary transition">
-                  Brands
-                </Link>
-                <Link href="/blog" className="block py-2 hover:text-primary transition">
-                  Blog
-                </Link>
-                <Link href="/about" className="block py-2 hover:text-primary transition">
-                  About Us
-                </Link>
-                <Link href="/contact" className="block py-2 hover:text-primary transition">
-                  Contact
-                </Link>
-                <Link href="/account" className="block py-2 hover:text-primary transition">
-                  👤 Account
-                </Link>
-                <Link href="/wishlist" className="block py-2 hover:text-primary transition">
-                  ❤️ Wishlist
-                </Link>
-              </div>
-            )}
+                  {/* Mobile Dropdown View - now shown/hidden via the 'active' class on the parent li */}
+                  <ul className="mobile-megamenu">
+                    {categories.map((cat) => (
+                      <li key={cat.id}>
+                        <Link href={`/shop?category=${cat.id}`} onClick={closeMenusAndNavigate}>{cat.title}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+
+                <li><Link href="/brands" onClick={closeMenusAndNavigate}>Brands</Link></li>
+                <li><Link href="/blog" onClick={closeMenusAndNavigate}>Blog</Link></li>
+                <li><Link href="/about" onClick={closeMenusAndNavigate}>About Us</Link></li>
+                <li><Link href="/contact" onClick={closeMenusAndNavigate}>Contact</Link></li>
+              </ul>
+            </nav>
           </div>
-        </nav>
+        </div>
+        {/* End Navigation */}
+
       </header>
+
+      {/* Mobile Menu Overlay (Keep as is) */}
+      {isMenuOpen && <div className="mobile-nav-overly" onClick={handleMobileMenuToggle}></div>}
     </>
   );
 }

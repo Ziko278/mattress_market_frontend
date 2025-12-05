@@ -25,153 +25,85 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-darkGray text-white mt-16">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* About Section */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">
-              Mattress<span className="text-secondary">Market</span>
-            </h3>
-            <p className="text-gray-400 mb-4">
-              Your trusted online store for premium mattresses from top brands. Quality sleep, delivered to your doorstep.
-            </p>
-            {siteInfo && (
-              <div className="space-y-2">
-                <a href={`tel:${siteInfo.phone}`} className="block hover:text-secondary transition">
-                  📞 {siteInfo.phone}
-                </a>
-                {siteInfo.alternate_phone && (
-                  <a href={`tel:${siteInfo.alternate_phone}`} className="block hover:text-secondary transition">
-                    📞 {siteInfo.alternate_phone}
-                  </a>
+    <footer id="footer" className="footer">
+      <div className="footer-main">
+        <div className="container">
+          <div className="row gy-4">
+            {/* About Section */}
+            <div className="col-lg-4 col-md-6 footer-widget footer-about">
+              <Link href="/" className="logo d-flex align-items-center">
+                {siteInfo?.logo ? (
+                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '40px'}} />
+                ) : (
+                  <span className="sitename">Mattress<span>Market</span></span>
                 )}
-                <a href={`mailto:${siteInfo.email}`} className="block hover:text-secondary transition">
-                  ✉️ {siteInfo.email}
-                </a>
+              </Link>
+              <p>
+                Your trusted online store for premium mattresses from top brands. Quality sleep, delivered to your doorstep.
+              </p>
+              <div className="social-links d-flex mt-3">
+                {siteInfo?.facebook && (
+                  <Link href={siteInfo.facebook} target="_blank" rel="noopener noreferrer"><i className="bi bi-facebook"></i></Link>
+                )}
+                {siteInfo?.instagram && (
+                  <Link href={siteInfo.instagram} target="_blank" rel="noopener noreferrer"><i className="bi bi-instagram"></i></Link>
+                )}
+                {siteInfo?.whatsapp && (
+                  <Link href={`https://wa.me/${siteInfo.whatsapp}`} target="_blank" rel="noopener noreferrer"><i className="bi bi-whatsapp"></i></Link>
+                )}
+                 {/* Add other social links if available */}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/shop" className="text-gray-400 hover:text-white transition">
-                  Shop
-                </Link>
-              </li>
-              <li>
-                <Link href="/brands" className="text-gray-400 hover:text-white transition">
-                  Brands
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-gray-400 hover:text-white transition">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-400 hover:text-white transition">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/track-order" className="text-gray-400 hover:text-white transition">
-                  Track Order
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Quick Links Column */}
+            <div className="col-lg-2 col-md-3 footer-widget footer-links">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><Link href="/shop">Shop</Link></li>
+                <li><Link href="/brands">Brands</Link></li>
+                <li><Link href="/about">About Us</Link></li>
+                <li><Link href="/contact">Contact</Link></li>
+                <li><Link href="/track-order">Track Order</Link></li>
+              </ul>
+            </div>
 
-          {/* Categories */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Categories</h4>
-            <ul className="space-y-2">
-              {categories.slice(0, 6).map((cat) => (
-                <li key={cat.id}>
-                  <Link 
-                    href={`/shop?category=${cat.id}`} 
-                    className="text-gray-400 hover:text-white transition"
-                  >
-                    {cat.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* Categories Column */}
+            <div className="col-lg-2 col-md-3 footer-widget footer-links">
+              <h4>Categories</h4>
+              <ul>
+                {categories.slice(0, 6).map((cat) => (
+                  <li key={cat.id}>
+                    <Link href={`/shop?category=${cat.id}`}>{cat.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Customer Service */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/account" className="text-gray-400 hover:text-white transition">
-                  My Account
-                </Link>
-              </li>
-              <li>
-                <Link href="/wishlist" className="text-gray-400 hover:text-white transition">
-                  Wishlist
-                </Link>
-              </li>
-              <li>
-                <Link href="/cart" className="text-gray-400 hover:text-white transition">
-                  Shopping Cart
-                </Link>
-              </li>
-              <li>
-                <Link href="/faq" className="text-gray-400 hover:text-white transition">
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-
-            {/* Social Media */}
-            {siteInfo && (
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  {siteInfo.facebook && (
-                    <a 
-                      href={siteInfo.facebook} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-2xl hover:text-secondary transition"
-                    >
-                      📘
-                    </a>
-                  )}
-                  {siteInfo.instagram && (
-                    <a 
-                      href={siteInfo.instagram} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-2xl hover:text-secondary transition"
-                    >
-                      📷
-                    </a>
-                  )}
-                  {siteInfo.whatsapp && (
-                    <a 
-                      href={`https://wa.me/${siteInfo.whatsapp}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-2xl hover:text-secondary transition"
-                    >
-                      💬
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Contact Column */}
+            <div className="col-lg-4 col-md-12 footer-widget footer-contact">
+              <h4>Contact Us</h4>
+              <p><strong>Address:</strong> {siteInfo?.address || 'A108 Adam Street, New York, NY 535022'}</p>
+              <p><strong>Phone:</strong> <Link href={`tel:${siteInfo?.phone || '+1 5589 55488 55'}`}>{siteInfo?.phone || '+1 5589 55488 55'}</Link></p>
+              <p><strong>Email:</strong> <Link href={`mailto:${siteInfo?.email || 'info@example.com'}`}>{siteInfo?.email || 'info@example.com'}</Link></p>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} MattressMarket. All rights reserved.</p>
+      <div className="footer-bottom">
+        <div className="container">
+          <div className="row align-items-center justify-content-between flex-wrap">
+            <div className="col-md-6">
+              <div className="copyright">
+                &copy; Copyright {new Date().getFullYear()} MattressMarket. All Rights Reserved.
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="credits">
+                Designed by <Link href="https://bootstrapmade.com/">BootstrapMade</Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
