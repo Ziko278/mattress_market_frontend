@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
 
-export default function BlogDetailPage() {
+function BlogDetailContent() {
   const params = useParams();
   const [post, setPost] = useState(null);
   const [recentPosts, setRecentPosts] = useState([]);
@@ -311,5 +311,13 @@ export default function BlogDetailPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function BlogDetailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BlogDetailContent />
+    </Suspense>
   );
 }
