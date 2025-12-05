@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  output: 'export',
+  // The line 'output: 'export',' has been removed
   images: {
     unoptimized: true,
   },
