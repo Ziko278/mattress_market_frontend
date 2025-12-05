@@ -1,81 +1,73 @@
-'use client';
-
-import { useState, useEffect, Suspense } from 'react';
-import { useParams } from 'next/navigation';
+// Import necessary components and functions
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
-import { apiService } from '@/lib/api';
+import { apiService } from '@/lib/api'; // Ensure this can run on the server
+import CommentForm from './CommentForm'; // We will create this next
 
-function BlogDetailContent() {
-  const params = useParams();
-  const [post, setPost] = useState(null);
-  const [recentPosts, setRecentPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [commentForm, setCommentForm] = useState({
-    full_name: '',
-    email: '',
-    comment: '',
-  });
-  const [commentSubmitting, setCommentSubmitting] = useState(false);
+// Generate static params for all blog posts at build time
+export async function generateStaticParams() {
+  try {
+    // IMPORTANT: You need an API endpoint to fetch all post slugs.
+    // Assuming `apiService.getAllPosts()` returns an array of posts with a 'slug' field.
+    // If you don't have this, create one in your Django backend.
+    const postsResponse = await apiService.getAllPosts();
+    
+    // If getAllPosts() doesn't exist, you might need to create it or use a fetch call:
+    // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/posts/`);
+    // const posts = await res.json();
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const [postResponse, recentResponse] = await Promise.all([
-          apiService.getBlogPost(params.slug),
-          apiService.getRecentPosts(),
-        ]);
-        setPost(postResponse.data);
-        setRecentPosts(recentResponse.data);
-      } catch (error) {
-        console.error('Error fetching post:', error);
-      } finally {
-        setLoading(false);
-      }
+    return postsResponse.data.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params for blog:', error);
+    // Return an empty array to prevent the build from failing,
+    // but no pages will be generated.
+    return [];
+  }
+}
+
+// Generate metadata for each page (great for SEO)
+export async function generateMetadata({ params }) {
+  try {
+    const postResponse = await apiService.getBlogPost(params.slug);
+    const post = postResponse.data;
+
+    return {
+      title: post.title,
+      description: post.excerpt,
+      openGraph: {
+        title: post.title,
+        description: post.excerpt,
+        images: [post.featured_image],
+      },
     };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Blog Post',
+    };
+  }
+}
 
-    if (params.slug) {
-      fetchPost();
-    }
-  }, [params.slug]);
+// The main page component is now an async Server Component
+export default async function BlogDetailPage({ params }) {
+  let post = null;
+  let recentPosts = [];
 
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    setCommentSubmitting(true);
-
-    try {
-      await apiService.createComment({
-        ...commentForm,
-        post: post.id,
-      });
-      alert('Comment submitted for approval!');
-      setCommentForm({
-        full_name: '',
-        email: '',
-        comment: '',
-      });
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-      alert('Failed to submit comment');
-    } finally {
-      setCommentSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-6 md:px-8 py-16">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-          </div>
-        </div>
-      </Layout>
-    );
+  try {
+    // Fetch data in parallel on the server before rendering
+    const [postResponse, recentResponse] = await Promise.all([
+      apiService.getBlogPost(params.slug),
+      apiService.getRecentPosts(),
+    ]);
+    post = postResponse.data;
+    recentPosts = recentResponse.data;
+  } catch (error) {
+    console.error('Error fetching post data:', error);
   }
 
+  // Handle 404 case if post is not found
   if (!post) {
     return (
       <Layout>
@@ -155,15 +147,13 @@ function BlogDetailContent() {
             {/* Post Content */}
             <div className="bg-white rounded-xl shadow-md p-8 mb-8">
               <div className="prose max-w-none">
-                {/* Render rich content - you'll need to parse the JSON content */}
+                {/* NOTE: Your original content rendering was basic.
+                  If `post.content` is a rich JSON from a editor like TipTap,
+                  you'll need a dedicated renderer component here. */}
                 <div
-                  dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(post.content)
-                      .replace(/\\n/g, '<br />')
-                      .replace(/"/g, ''),
-                  }}
+                  dangerouslySetInnerHTML={{ __html: post.content }}
                   className="text-gray-700 leading-relaxed"
-                ></div>
+                />
               </div>
 
               {/* Share Buttons */}
@@ -215,68 +205,10 @@ function BlogDetailContent() {
                 </p>
               )}
 
-              {/* Comment Form */}
+              {/* Comment Form - Now a separate Client Component */}
               <div className="border-t pt-8">
                 <h3 className="text-xl font-bold text-darkGray mb-4">Leave a Comment</h3>
-                <form onSubmit={handleCommentSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Your Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={commentForm.full_name}
-                        onChange={(e) =>
-                          setCommentForm({ ...commentForm, full_name: e.target.value })
-                        }
-                        required
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        value={commentForm.email}
-                        onChange={(e) =>
-                          setCommentForm({ ...commentForm, email: e.target.value })
-                        }
-                        required
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Comment *
-                    </label>
-                    <textarea
-                      value={commentForm.comment}
-                      onChange={(e) =>
-                        setCommentForm({ ...commentForm, comment: e.target.value })
-                      }
-                      required
-                      rows="4"
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition-colors duration-300"
-                    ></textarea>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={commentSubmitting}
-                    className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 ${
-                      commentSubmitting
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-primary hover:bg-blue-900'
-                    }`}
-                  >
-                    {commentSubmitting ? 'Submitting...' : 'Post Comment'}
-                  </button>
-                </form>
+                <CommentForm postId={post.id} />
               </div>
             </div>
 
@@ -311,13 +243,5 @@ function BlogDetailContent() {
         </div>
       </div>
     </Layout>
-  );
-}
-
-export default function BlogDetailPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BlogDetailContent />
-    </Suspense>
   );
 }
