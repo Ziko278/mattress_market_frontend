@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  output: 'standalone',
+  output: 'export',
   images: {
-    domains: ['api.mattressmarket.ng'],
-  },
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
+    unoptimized: true,
   },
 };
 
