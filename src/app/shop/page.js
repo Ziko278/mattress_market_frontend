@@ -2,13 +2,13 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/shared/ProductCard';
 import { apiService } from '@/lib/api';
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState([]);
@@ -29,7 +29,6 @@ export default function ShopPage() {
   });
 
   const observer = useRef();
-  // CORRECTED: Properly defined lastProductRef using useCallback
   const lastProductRef = useCallback(
     (node) => {
       if (loading) return;
@@ -47,7 +46,6 @@ export default function ShopPage() {
   const filterOffcanvasRef = useRef(null);
   const [bsOffcanvas, setBsOffcanvas] = useState(null);
 
-  // Fetch filters data (brands & categories)
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -64,7 +62,6 @@ export default function ShopPage() {
     fetchFilters();
   }, []);
 
-  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -91,7 +88,6 @@ export default function ShopPage() {
     fetchProducts();
   }, [filters, page]);
 
-  // Initialize Bootstrap Offcanvas instance from the global window object
   useEffect(() => {
     if (typeof window !== 'undefined' && window.bootstrap) {
       const { Offcanvas } = window.bootstrap;
@@ -106,7 +102,6 @@ export default function ShopPage() {
     }
   }, []);
 
-  // Update URL and reset page when filters change
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
@@ -154,7 +149,6 @@ export default function ShopPage() {
 
   return (
     <Layout>
-      {/* Breadcrumb */}
       <div className="page-title">
         <div className="container">
           <nav className="d-flex justify-content-between">
@@ -169,7 +163,6 @@ export default function ShopPage() {
 
       <div className="container">
         <div className="row">
-          {/* Sidebar Filters - Hidden on mobile, visible on desktop */}
           <aside className="col-lg-3 d-none d-lg-block">
             <div className="sidebar-filter card shadow-sm mb-4">
               <div className="card-body">
@@ -180,7 +173,6 @@ export default function ShopPage() {
                   </button>
                 </div>
 
-                {/* Search */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Search</label>
                   <input
@@ -192,7 +184,6 @@ export default function ShopPage() {
                   />
                 </div>
 
-                {/* Category Filter */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Category</label>
                   <select
@@ -209,7 +200,6 @@ export default function ShopPage() {
                   </select>
                 </div>
 
-                {/* Brand Filter */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Brand</label>
                   <select
@@ -226,7 +216,6 @@ export default function ShopPage() {
                   </select>
                 </div>
 
-                {/* Price Range */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Price Range</label>
                   <div className="row g-2">
@@ -251,7 +240,6 @@ export default function ShopPage() {
                   </div>
                 </div>
 
-                {/* Quick Filters */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Quick Filters</label>
                   <div className="form-check mb-2">
@@ -283,9 +271,7 @@ export default function ShopPage() {
             </div>
           </aside>
 
-          {/* Products Grid */}
           <main className="col-lg-9">
-            {/* Sort Bar */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <button
                 className="btn btn-outline-secondary d-lg-none"
@@ -316,7 +302,6 @@ export default function ShopPage() {
               </div>
             </div>
 
-            {/* Products Grid */}
             {loading && page === 1 ? (
               <div className="row g-4">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -347,7 +332,6 @@ export default function ShopPage() {
                   })}
                 </div>
 
-                {/* Loading More */}
                 {loading && page > 1 && (
                   <div className="text-center py-8">
                     <div className="spinner-border text-primary" role="status">
@@ -357,7 +341,6 @@ export default function ShopPage() {
                   </div>
                 )}
 
-                {/* End of Results */}
                 {!hasMore && products.length > 0 && (
                   <div className="text-center py-8">
                     <p className="text-muted">You've reached the end of the results!</p>
@@ -378,7 +361,6 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Offcanvas */}
       <div
         className="offcanvas offcanvas-start"
         tabIndex="-1"
@@ -396,7 +378,6 @@ export default function ShopPage() {
           ></button>
         </div>
         <div className="offcanvas-body">
-          {/* Search */}
           <div className="mb-4">
             <label className="form-label fw-bold">Search</label>
             <input
@@ -408,7 +389,6 @@ export default function ShopPage() {
             />
           </div>
 
-          {/* Category Filter */}
           <div className="mb-4">
             <label className="form-label fw-bold">Category</label>
             <select
@@ -425,7 +405,6 @@ export default function ShopPage() {
             </select>
           </div>
 
-          {/* Brand Filter */}
           <div className="mb-4">
             <label className="form-label fw-bold">Brand</label>
             <select
@@ -442,7 +421,6 @@ export default function ShopPage() {
             </select>
           </div>
 
-          {/* Price Range */}
           <div className="mb-4">
             <label className="form-label fw-bold">Price Range</label>
             <div className="row g-2">
@@ -467,7 +445,6 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Quick Filters */}
           <div className="mb-4">
             <label className="form-label fw-bold">Quick Filters</label>
             <div className="form-check mb-2">
@@ -505,12 +482,19 @@ export default function ShopPage() {
   );
 }
 
-
-// export default function ShopPage() {
-//   return (
-//     <div style={{ padding: '50px', textAlign: 'center' }}>
-//       <h1>Shop Page</h1>
-//       <p>If this builds, the problem was in the old component.</p>
-//     </div>
-//   );
-// }
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="container mx-auto px-6 md:px-8 py-16 text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading shop...</p>
+        </div>
+      </Layout>
+    }>
+      <ShopContent />
+    </Suspense>
+  );
+}
