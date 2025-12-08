@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import { apiService } from '@/lib/api';
 import { CURRENCY } from '@/lib/constants';
 
-export default function TrackOrderPage() {
+function TrackOrderContent() {
   const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState(searchParams.get('order_id') || '');
   const [order, setOrder] = useState(null);
@@ -278,12 +278,17 @@ export default function TrackOrderPage() {
   );
 }
 
-
-// export default function TrackOrderPage() {
-//   return (
-//     <div style={{ padding: '50px', textAlign: 'center' }}>
-//       <h1>Track Order Page</h1>
-//       <p>If this builds, we're making progress.</p>
-//     </div>
-//   );
-// }
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="container mx-auto px-6 md:px-8 py-16 text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <p>Loading...</p>
+        </div>
+      </Layout>
+    }>
+      <TrackOrderContent />
+    </Suspense>
+  );
+}
