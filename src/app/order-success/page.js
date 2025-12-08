@@ -1,6 +1,7 @@
 'use client';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -11,24 +12,37 @@ import { CURRENCY } from '@/lib/constants';
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('order_id');
+  const orderId = searchParams?.get?.('order_id') ?? null;
+
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(orderId));
 
   useEffect(() => {
-    if (orderId) {
-      const fetchOrder = async () => {
-        try {
-          const response = await apiService.trackOrder(orderId);
-          setOrder(response.data);
-        } catch (error) {
-          console.error('Error fetching order:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchOrder();
+    if (!orderId) {
+      setLoading(false);
+      return;
     }
+
+    let mounted = true;
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.trackOrder(orderId);
+        // defensive: ensure response.data exists
+        if (mounted && response && response.data) {
+          setOrder(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchOrder();
+    return () => {
+      mounted = false;
+    };
   }, [orderId]);
 
   if (loading) {
@@ -55,11 +69,15 @@ export default function OrderSuccessPage() {
     );
   }
 
+  // safe values
+  const createdAt = order.created_at ? new Date(order.created_at).toLocaleDateString() : '—';
+  const items = Array.isArray(order.items) ? order.items : [];
+  const paymentMethod = (order.payment_method ?? '').replace(/_/g, ' ');
+
   return (
     <Layout>
       <div className="bg-lightGray min-h-screen py-16">
         <div className="container mx-auto px-6 md:px-8 max-w-3xl">
-          {/* Success Icon */}
           <div className="text-center mb-8">
             <div className="inline-block bg-green-100 rounded-full p-6 mb-4">
               <div className="text-6xl">✅</div>
@@ -72,75 +90,67 @@ export default function OrderSuccessPage() {
             </p>
           </div>
 
-          {/* Order Details Card */}
           <div className="bg-white rounded-xl shadow-md p-6 md:p-8 mb-6">
             <div className="border-b pb-4 mb-4">
               <h2 className="text-xl font-bold text-darkGray mb-2">Order Details</h2>
               <p className="text-gray-600">
-                Order ID: <span className="font-semibold text-primary">{order.order_id}</span>
+                Order ID: <span className="font-semibold text-primary">{order.order_id ?? '—'}</span>
               </p>
-              <p className="text-gray-600">
-                Date: {new Date(order.created_at).toLocaleDateString()}
-              </p>
+              <p className="text-gray-600">Date: {createdAt}</p>
             </div>
 
-            {/* Customer Info */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-2">Customer Information</h3>
-              <p className="text-gray-700">{order.customer_name}</p>
-              <p className="text-gray-700">{order.customer_email}</p>
-              <p className="text-gray-700">{order.customer_phone}</p>
+              <p className="text-gray-700">{order.customer_name ?? '—'}</p>
+              <p className="text-gray-700">{order.customer_email ?? '—'}</p>
+              <p className="text-gray-700">{order.customer_phone ?? '—'}</p>
             </div>
 
-            {/* Shipping Address */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-2">Shipping Address</h3>
-              <p className="text-gray-700">{order.shipping_address}</p>
+              <p className="text-gray-700">{order.shipping_address ?? '—'}</p>
               <p className="text-gray-700">
-                {order.city}, {order.state}
+                {order.city ?? '—'}, {order.state ?? '—'}
               </p>
             </div>
 
-            {/* Order Items */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-3">Order Items</h3>
               <div className="space-y-3">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center">
+                {items.length === 0 && <p className="text-gray-600">No items listed.</p>}
+                {items.map((item) => (
+                  <div key={item?.id ?? Math.random()} className="flex justify-between items-center">
                     <div>
-                      <p className="font-semibold text-gray-900">{item.product_name}</p>
+                      <p className="font-semibold text-gray-900">{item?.product_name ?? 'Item'}</p>
                       <p className="text-sm text-gray-600">
-                        Size: {item.size} × {item.quantity}
+                        Size: {item?.size ?? '—'} × {item?.quantity ?? 1}
                       </p>
                     </div>
                     <p className="font-semibold text-primary">
                       {CURRENCY}
-                      {Number(item.subtotal).toLocaleString()}
+                      {Number(item?.subtotal ?? 0).toLocaleString()}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Payment Method */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-2">Payment Method</h3>
-              <p className="text-gray-700 capitalize">{order.payment_method.replace('_', ' ')}</p>
+              <p className="text-gray-700 capitalize">{paymentMethod || '—'}</p>
             </div>
 
-            {/* Total */}
             <div className="border-t pt-4">
               <div className="flex justify-between items-center text-xl font-bold">
                 <span className="text-gray-900">Total:</span>
                 <span className="text-primary">
                   {CURRENCY}
-                  {Number(order.total_amount).toLocaleString()}
+                  {Number(order.total_amount ?? 0).toLocaleString()}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/shop"
@@ -156,11 +166,10 @@ export default function OrderSuccessPage() {
             </Link>
           </div>
 
-          {/* Contact Info */}
           <div className="mt-8 text-center bg-blue-50 rounded-xl p-6">
             <p className="text-gray-700 mb-2">
               We've sent a confirmation email to{' '}
-              <span className="font-semibold">{order.customer_email}</span>
+              <span className="font-semibold">{order.customer_email ?? '—'}</span>
             </p>
             <p className="text-gray-600 text-sm">
               Need help? Contact us via WhatsApp or call our customer service
@@ -171,15 +180,3 @@ export default function OrderSuccessPage() {
     </Layout>
   );
 }
-
-
-// export const dynamic = 'force-dynamic';
-
-// export default function OrderSuccessPage() {
-//   return (
-//     <div style={{ padding: '50px', textAlign: 'center' }}>
-//       <h1>Order Success Page</h1>
-//       <p>If you can see this, the build worked!</p>
-//     </div>
-//   );
-// }
