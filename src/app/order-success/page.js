@@ -3,14 +3,14 @@
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
 import { CURRENCY } from '@/lib/constants';
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams?.get?.('order_id') ?? null;
 
@@ -178,5 +178,20 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="container mx-auto px-6 md:px-8 py-16 text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <p>Loading...</p>
+        </div>
+      </Layout>
+    }>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
