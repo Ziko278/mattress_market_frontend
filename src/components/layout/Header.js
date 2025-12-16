@@ -149,10 +149,11 @@ export default function Header() {
               {/* Logo */}
               <Link href="/" className="logo d-flex align-items-center" onClick={closeMenusAndNavigate}>
                 {siteInfo?.logo ? (
-                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '40px'}} />
+                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '80px'}} />
                 ) : (
-                  <h1 className="sitename">Mattress<span>Market</span></h1>
+                  <h1 className="sitename"></h1>
                 )}
+                <h1 className="sitename">Mattress<span>Market</span></h1>
               </Link>
 
               {/* Search Form - Desktop (Keep as is) */}
