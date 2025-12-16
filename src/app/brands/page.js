@@ -79,24 +79,24 @@ export default function BrandsPage() {
                       <div className="group bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                         <div className="flex flex-col items-center justify-center h-full">
                           {brand.logo ? (
-                            <img
-                              src={brand.logo}
-                              alt={brand.name}
-                              className="max-h-24 w-auto object-contain mb-4 group-hover:scale-110 transition-transform duration-300"
-                            />
+                            <div className="h-24 w-full flex items-center justify-center mb-4">
+                              <img
+                                src={brand.logo}
+                                alt={brand.name}
+                                className="h-full w-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
                           ) : (
-                            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                              🏷️
+                            <div className="h-24 w-full flex items-center justify-center mb-4">
+                              <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
+                                🏷️
+                              </div>
                             </div>
                           )}
                           <h3 className="text-xl font-bold text-gray-900 text-center group-hover:text-primary transition-colors duration-300">
                             {brand.name}
                           </h3>
-                          {brand.product_count > 0 && (
-                            <p className="text-sm text-gray-600 mt-2">
-                              {brand.product_count} Products
-                            </p>
-                          )}
+                          
                         </div>
                       </div>
                     </Link>

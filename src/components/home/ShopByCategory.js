@@ -83,9 +83,9 @@ export default function ShopByCategory() {
                 <h3 className="text-lg font-bold mb-1 group-hover:text-secondary transition-colors duration-300">
                   {category.title}
                 </h3>
-                <p className="text-sm text-gray-200">
+                {/* <p className="text-sm text-gray-200">
                   {category.product_count || 0} Products
-                </p>
+                </p> */}
               </div>
 
               {/* Hover Effect */}
