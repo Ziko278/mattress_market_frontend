@@ -149,7 +149,7 @@ export default function Header() {
               {/* Logo */}
               <Link href="/" className="logo d-flex align-items-center" onClick={closeMenusAndNavigate}>
                 {siteInfo?.logo ? (
-                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '80px'}} />
+                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '60px'}} />
                 ) : (
                   <h1 className="sitename"><span></span></h1>
                 )}
