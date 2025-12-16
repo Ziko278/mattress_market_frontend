@@ -290,7 +290,7 @@ export default function Header() {
                               </div>
                               <div className="card-body text-center">
                                 <h6 className="card-title text-dark fw-bold mb-0">{cat.title}</h6>
-                                <small className="text-muted">{cat.product_count || 0} Products</small>
+                                {/* <small className="text-muted">{cat.product_count || 0} Products</small> */}
                               </div>
                             </Link>
                           </div>
