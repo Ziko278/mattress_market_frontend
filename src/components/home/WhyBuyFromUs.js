@@ -2,13 +2,13 @@ export default function WhyBuyFromUs() {
   const reasons = [
     {
       icon: '🚚',
-      title: 'Fast & Free Delivery',
-      description: 'Same day delivery within Lagos. Next day delivery nationwide.',
+      title: 'Payment On Delivery',
+      description: 'Pay after your product is delivered, Within Abuja Only.',
     },
     {
       icon: '✅',
-      title: 'Quality Guarantee',
-      description: '100% authentic products from trusted brands with warranty.',
+      title: 'Fast Delivery',
+      description: 'Same Day Delivery for Order(s) witin Abuja.',
     },
     {
       icon: '💰',
