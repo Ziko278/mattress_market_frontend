@@ -244,7 +244,7 @@ body.mobile-nav-active .navmenu {
 }
 
 .header .main-header .logo h1 {
-  font-size: 26px;
+  font-size: 24px;
   margin: 0;
   font-weight: 700;
   color: var(--heading-color);
@@ -256,7 +256,7 @@ body.mobile-nav-active .navmenu {
 
 @media (max-width: 768px) {
   .header .main-header .logo h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 }
 
