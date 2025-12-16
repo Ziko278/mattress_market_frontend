@@ -47,17 +47,17 @@ export default function HeroSlider() {
 
   if (loading) {
     return (
-      <div className="w-full h-96 md:h-[500px] bg-gradient-to-r from-primary to-blue-900 animate-pulse"></div>
+      <div className="w-full h-72 md:h-96 bg-gradient-to-r from-primary to-blue-900 animate-pulse"></div>
     );
   }
 
   if (!sliders || sliders.length === 0) {
     return (
-      <div className="w-full h-96 md:h-[500px] bg-gradient-to-r from-primary to-blue-900 flex items-center justify-center text-white">
+      <div className="w-full h-72 md:h-96 bg-gradient-to-r from-primary to-blue-900 flex items-center justify-center text-white">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to MattressMarket</h1>
           <p className="text-xl mb-8">Your trusted source for premium mattresses</p>
-          <Link href="/shop" className="bg-secondary hover:bg-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 inline-block">
+          <Link href="/shop" className="hover:opacity-90 text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 inline-block" style={{ backgroundColor: 'var(--accent-color)' }}>
             Shop Now
           </Link>
         </div>
@@ -66,7 +66,7 @@ export default function HeroSlider() {
   }
 
   return (
-    <div className="relative w-full h-96 md:h-[500px] overflow-hidden">
+    <div className="relative w-full h-72 md:h-96 overflow-hidden">
       {/* Slides */}
       {sliders.map((slider, index) => (
         <div
@@ -103,7 +103,8 @@ export default function HeroSlider() {
                 {slider.button_text && slider.button_link && (
                   <Link
                     href={slider.button_link}
-                    className="bg-secondary hover:bg-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 inline-block animate-fade-in-up animation-delay-400 hover:scale-105"
+                    className="hover:opacity-90 text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 inline-block animate-fade-in-up animation-delay-400 hover:scale-105"
+                    style={{ backgroundColor: 'var(--accent-color)' }}
                   >
                     {slider.button_text}
                   </Link>
@@ -114,24 +115,6 @@ export default function HeroSlider() {
         </div>
       ))}
 
-      {/* Navigation Arrows */}
-      {sliders.length > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110 z-10"
-          >
-            ‹
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110 z-10"
-          >
-            ›
-          </button>
-        </>
-      )}
-
       {/* Dots Indicator */}
       {sliders.length > 1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
@@ -141,9 +124,10 @@ export default function HeroSlider() {
               onClick={() => goToSlide(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 index === currentSlide
-                  ? 'bg-secondary w-8'
+                  ? 'w-8'
                   : 'bg-white/50 hover:bg-white/75'
               }`}
+              style={index === currentSlide ? { backgroundColor: 'var(--accent-color)' } : {}}
             ></button>
           ))}
         </div>
