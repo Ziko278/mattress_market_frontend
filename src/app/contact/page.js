@@ -181,7 +181,7 @@ export default function ContactPage() {
                 </div>
 
                 {/* Address */}
-                <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300">
+                {/* <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center gap-4 mb-3">
                     <div className="bg-accent/10 rounded-full p-3 text-3xl">📍</div>
                     <h3 className="text-xl font-bold text-darkGray">Visit Us</h3>
@@ -190,7 +190,7 @@ export default function ContactPage() {
                   {siteInfo && (
                     <p className="text-gray-700 leading-relaxed">{siteInfo.address}</p>
                   )}
-                </div>
+                </div> */}
 
                 {/* Social Media */}
                 {siteInfo && (siteInfo.facebook || siteInfo.instagram) && (
