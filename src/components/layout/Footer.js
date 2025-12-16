@@ -33,10 +33,12 @@ export default function Footer() {
             <div className="col-lg-4 col-md-6 footer-widget footer-about">
               <Link href="/" className="logo d-flex align-items-center">
                 {siteInfo?.logo ? (
-                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '40px'}} />
+                  <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '100px'}} />
                 ) : (
-                  <span className="sitename">Mattress<span>Market</span></span>
+                  <span className="sitename"></span>
                 )}
+                <br />
+                <span className="sitename">Mattress<span>Market</span></span>
               </Link>
               <p>
                 Your trusted online store for premium mattresses from top brands. Quality sleep, delivered to your doorstep.
@@ -56,9 +58,9 @@ export default function Footer() {
             </div>
 
             {/* Quick Links Column */}
-            <div className="col-lg-2 col-md-3 footer-widget footer-links">
-              <h4>Quick Links</h4>
-              <ul>
+            <div className="col-lg-2 col-md-3 col-6 footer-widget footer-links">
+              <h4 style={{ textAlign: 'left', paddingLeft: '200' }}>Quick Links</h4>
+              <ul style={{listStyleType: 'none', paddingLeft: '200', textAlign: 'left'}}>
                 <li><Link href="/shop">Shop</Link></li>
                 <li><Link href="/brands">Brands</Link></li>
                 <li><Link href="/about">About Us</Link></li>
@@ -68,9 +70,9 @@ export default function Footer() {
             </div>
 
             {/* Categories Column */}
-            <div className="col-lg-2 col-md-3 footer-widget footer-links">
-              <h4>Categories</h4>
-              <ul>
+            <div className="col-lg-2 col-md-3 col-6 footer-widget footer-links">
+              <h4 style={{ textAlign: 'left', paddingLeft: '200'}}>Categories</h4>
+              <ul style={{listStyleType: 'none', paddingLeft: '200', textAlign: 'left'}}>
                 {categories.slice(0, 6).map((cat) => (
                   <li key={cat.id}>
                     <Link href={`/shop?category=${cat.id}`}>{cat.title}</Link>
@@ -82,7 +84,6 @@ export default function Footer() {
             {/* Contact Column */}
             <div className="col-lg-4 col-md-12 footer-widget footer-contact">
               <h4>Contact Us</h4>
-              <p><strong>Address:</strong> {siteInfo?.address || 'A108 Adam Street, New York, NY 535022'}</p>
               <p><strong>Phone:</strong> <Link href={`tel:${siteInfo?.phone || '+1 5589 55488 55'}`}>{siteInfo?.phone || '+1 5589 55488 55'}</Link></p>
               <p><strong>Email:</strong> <Link href={`mailto:${siteInfo?.email || 'info@example.com'}`}>{siteInfo?.email || 'info@example.com'}</Link></p>
             </div>
@@ -100,7 +101,7 @@ export default function Footer() {
             </div>
             <div className="col-md-6">
               <div className="credits">
-                Designed by <Link href="https://bootstrapmade.com/">BootstrapMade</Link>
+                Designed by <Link href="">Balablu Tech Limited</Link>
               </div>
             </div>
           </div>
