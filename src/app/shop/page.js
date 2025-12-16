@@ -17,10 +17,12 @@ function ShopContent() {
   const [page, setPage] = useState(1);
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [weights, setWeights] = useState([]);
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     brand: searchParams.get('brand') || '',
     category: searchParams.get('category') || '',
+    weight: searchParams.get('weight') || '', 
     min_price: searchParams.get('min_price') || '',
     max_price: searchParams.get('max_price') || '',
     is_featured: searchParams.get('is_featured') || '',
@@ -49,12 +51,14 @@ function ShopContent() {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const [brandsRes, categoriesRes] = await Promise.all([
+        const [brandsRes, categoriesRes, weightsRes] = await Promise.all([
           apiService.getBrands(),
           apiService.getCategories(),
+          apiService.getWeights(),
         ]);
         setBrands(brandsRes.data);
         setCategories(categoriesRes.data);
+        setWeights(weightsRes.data);
       } catch (error) {
         console.error('Error fetching filters:', error);
       }
@@ -123,6 +127,7 @@ function ShopContent() {
       search: '',
       brand: '',
       category: '',
+      weight: '',
       min_price: '',
       max_price: '',
       is_featured: '',
@@ -211,6 +216,22 @@ function ShopContent() {
                     {brands.map((brand) => (
                       <option key={brand.id} value={brand.id}>
                         {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Weight</label>
+                  <select
+                    value={filters.weight}
+                    onChange={(e) => handleFilterChange('weight', e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">All Weights</option>
+                    {weights.map((weight) => (
+                      <option key={weight.id} value={weight.id}>
+                        {weight.weight}
                       </option>
                     ))}
                   </select>
@@ -416,6 +437,22 @@ function ShopContent() {
               {brands.map((brand) => (
                 <option key={brand.id} value={brand.id}>
                   {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="form-label fw-bold">Weight</label>
+            <select
+              value={filters.weight}
+              onChange={(e) => handleFilterChange('weight', e.target.value)}
+              className="form-select"
+            >
+              <option value="">All Weights</option>
+              {weights.map((weight) => (
+                <option key={weight.id} value={weight.id}>
+                  {weight.weight}
                 </option>
               ))}
             </select>

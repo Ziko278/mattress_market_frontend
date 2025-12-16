@@ -28,6 +28,7 @@ export const apiService = {
   // Products
   getBrands: () => api.get('/products/brands/'),
   getCategories: () => api.get('/products/categories/'),
+  getWeights: () => api.get('/products/weights/'),
   getProducts: (params = {}) => api.get('/products/', { params }),
   getProductDetail: (slug) => api.get(`/products/${slug}/`),
   getFeaturedProducts: () => api.get('/products/featured/'),

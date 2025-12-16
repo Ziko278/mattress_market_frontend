@@ -9,17 +9,9 @@ export default function ProductCard({ product }) {
 
   const handleWishlist = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent the Link from navigating
-    // TODO: Implement actual wishlist functionality
+    e.stopPropagation();
     setIsWishlisted(!isWishlisted);
     console.log('Toggled wishlist for:', product.name);
-  };
-
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent the Link from navigating
-    // TODO: Implement actual add to cart functionality
-    console.log('Add to cart:', product.id);
   };
 
   // Format price range
@@ -48,21 +40,22 @@ export default function ProductCard({ product }) {
         .product-card-wrapper:hover .card-overlay {
           opacity: 1;
         }
-        .card-img-container {
-          aspect-ratio: 1 / 1;
-        }
       `}</style>
 
       <div className="product-card-wrapper">
         <Link href={`/product/${product.slug}`} className="text-decoration-none text-dark">
           <div className="card h-100">
-            {/* Product Image Container */}
-            <div className="card-img-container position-relative overflow-hidden">
+            {/* Product Image Container with Fixed Height */}
+            <div className="position-relative overflow-hidden" style={{ height: '220px' }}>
               <img
                 src={product.main_image || '/placeholder-product.jpg'}
-                className="card-img-top img-fluid"
+                className="card-img-top"
                 alt={product.name}
-                style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                style={{ 
+                  objectFit: 'cover', 
+                  height: '100%', 
+                  width: '100%' 
+                }}
               />
               
               {/* Badges */}
@@ -77,12 +70,13 @@ export default function ProductCard({ product }) {
 
               {/* Quick Actions Overlay */}
               <div className="card-overlay position-absolute bottom-0 start-0 w-100 p-3 text-center">
-                <button
-                  onClick={handleAddToCart}
+                <Link
+                  href={`/product/${product.slug}`}
                   className="btn btn-primary w-100"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <i className="bi bi-cart-plus me-2"></i>Add to Cart
-                </button>
+                  <i className="bi bi-box-seam me-2"></i>Select Size
+                </Link>
               </div>
             </div>
 
