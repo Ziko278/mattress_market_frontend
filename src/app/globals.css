@@ -1013,9 +1013,10 @@ body.mobile-nav-active .navmenu {
   }
 
   .navmenu .products-megamenu-1 .mobile-megamenu {
-    display: none;
+    display: none !important;
   }
 
+ 
   .navmenu .products-megamenu-1 .desktop-megamenu,
   .navmenu .products-megamenu-1 .active,
   .navmenu .products-megamenu-1 .active:focus {
@@ -1297,6 +1298,7 @@ body.mobile-nav-active .navmenu {
 
 /* Products Mega Menu 1 - Mobile */
 @media (max-width: 1199px) {
+  
   .navmenu .products-megamenu-1 {
     /* Hide Desktop Mega Menu 1 in Mobile */
   }
@@ -1318,7 +1320,7 @@ body.mobile-nav-active .navmenu {
     border-radius: 4px;
     overflow: hidden;
 
-    max-height: 0; /* Change from display: none */
+    max-height: 250; /* Change from display: none */
     transition: max-height 0.3s ease-in-out;
   }
 
@@ -13109,3 +13111,22 @@ section,
 .d-none { display: none !important; }
 .d-lg-block { display: block !important; }
 @media (max-width: 991px) { .d-lg-block { display: none !important; } }
+
+@media (max-width: 991px) {
+  .header-nav {
+    position: relative;
+    z-index: 1000; /* Or any value higher than the overlay's z-index */
+  }
+}
+
+ .dropdown.active .mobile-megamenu {
+  display: block;
+}
+
+.navmenu .products-megamenu-1 .mobile-megamenu {
+  display: none; /* hidden by default */
+}
+
+.navmenu .products-megamenu-1.active .mobile-megamenu {
+  display: block; /* show when active */
+}

@@ -151,7 +151,7 @@ export default function Header() {
                 {siteInfo?.logo ? (
                   <img src={siteInfo.logo} alt={siteInfo.site_name} style={{maxHeight: '80px'}} />
                 ) : (
-                  <h1 className="sitename"></h1>
+                  <h1 className="sitename"><span></span></h1>
                 )}
                 <h1 className="sitename">Mattress<span>Market</span></h1>
               </Link>
@@ -326,7 +326,7 @@ export default function Header() {
       </header>
 
       {/* Mobile Menu Overlay (Keep as is) */}
-      {isMenuOpen && <div className="mobile-nav-overly" onClick={handleMobileMenuToggle}></div>}
+      {/* {isMenuOpen && <div className="mobile-nav-overly" onClick={handleMobileMenuToggle}></div>} */}
     </>
   );
 }
