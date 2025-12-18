@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'dompurify';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
@@ -390,12 +391,15 @@ export default function ProductDetailPage() {
             <div className="p-8 md:p-12">
               {/* Description Tab */}
               {activeTab === 'description' && (
-                <div className="prose max-w-none">
-                  <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-                    {product.description}
-                  </p>
-                </div>
-              )}
+				  <div className="prose max-w-none">
+					<div
+					  className="text-gray-700 text-lg leading-relaxed"
+					  dangerouslySetInnerHTML={{
+						__html: DOMPurify.sanitize(product.description || '')
+					  }}
+					/>
+				  </div>
+				)}
 
               {/* Specifications Tab */}
               {activeTab === 'specifications' && (
