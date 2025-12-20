@@ -11,14 +11,14 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
     customer_phone: '',
     shipping_address: '',
-    city: '',
-    state: '',
     payment_method: 'pay_on_delivery',
   });
 
@@ -33,17 +33,48 @@ export default function CheckoutPage() {
     }
     setCartItems(cart);
 
+    // Check if user is logged in
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      setIsLoggedIn(true);
+      fetchUserProfile(token);
+    }
+
     // Fetch settings
-    const fetchSettings = async () => {
-      try {
-        const response = await apiService.getSettings();
-        setSettings(response.data);
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
     fetchSettings();
   }, [router]);
+
+  const fetchUserProfile = async (token) => {
+    try {
+      const response = await fetch('https://api.mattressmarket.ng/api/users/profile/with-address/', {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+      const data = await response.json();
+      setUserProfile(data);
+      
+      // Pre-fill form with user data
+      setFormData({
+        customer_name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username || '',
+        customer_email: data.email || '',
+        customer_phone: data.profile?.phone || '',
+        shipping_address: data.default_address?.address || '',
+        payment_method: 'pay_on_delivery',
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await apiService.getSettings();
+      setSettings(response.data);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -77,14 +108,6 @@ export default function CheckoutPage() {
       newErrors.shipping_address = 'Shipping address is required';
     }
 
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
-    }
-
-    if (!formData.state.trim()) {
-      newErrors.state = 'State is required';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,9 +116,22 @@ export default function CheckoutPage() {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  const getShippingFee = () => {
+    if (!settings) return 0;
+    
+    const subtotal = getSubtotal();
+    
+    // Free if threshold is 0 or subtotal exceeds threshold
+    if (parseFloat(settings.free_shipping_threshold) === 0 || 
+        subtotal >= parseFloat(settings.free_shipping_threshold)) {
+      return 0;
+    }
+    
+    return parseFloat(settings.shipping_fee || 0);
+  };
+
   const getTotal = () => {
-    // For now, no shipping fee
-    return getSubtotal();
+    return getSubtotal() + getShippingFee();
   };
 
   const handleSubmit = async (e) => {
@@ -235,67 +271,23 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Street Address *
+                        Delivery Address in Abuja *
                       </label>
                       <textarea
                         name="shipping_address"
                         value={formData.shipping_address}
                         onChange={handleInputChange}
-                        rows="3"
+                        rows="4"
                         className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors duration-300 ${
                           errors.shipping_address
                             ? 'border-red-500'
                             : 'border-gray-300 focus:border-primary'
                         }`}
-                        placeholder="Enter your full address"
+                        placeholder="Enter your full delivery address in Abuja (e.g., House 123, Street Name, Area, Abuja)"
                       ></textarea>
                       {errors.shipping_address && (
                         <p className="text-red-500 text-sm mt-1">{errors.shipping_address}</p>
                       )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          City *
-                        </label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors duration-300 ${
-                            errors.city
-                              ? 'border-red-500'
-                              : 'border-gray-300 focus:border-primary'
-                          }`}
-                          placeholder="e.g., Lagos"
-                        />
-                        {errors.city && (
-                          <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          State *
-                        </label>
-                        <input
-                          type="text"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors duration-300 ${
-                            errors.state
-                              ? 'border-red-500'
-                              : 'border-gray-300 focus:border-primary'
-                          }`}
-                          placeholder="e.g., Lagos"
-                        />
-                        {errors.state && (
-                          <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -389,7 +381,13 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between text-gray-700">
                       <span>Shipping:</span>
-                      <span className="font-semibold">Free</span>
+                      <span className="font-semibold">
+                        {getShippingFee() === 0 ? (
+                          <span className="text-success">Free</span>
+                        ) : (
+                          `${CURRENCY}${Number(getShippingFee()).toLocaleString()}`
+                        )}
+                      </span>
                     </div>
                     <div className="border-t pt-3 flex justify-between text-lg font-bold text-darkGray">
                       <span>Total:</span>

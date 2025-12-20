@@ -9,15 +9,27 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showClearCartModal, setShowClearCartModal] = useState(false);
+  const [settings, setSettings] = useState(null);
 
   useEffect(() => {
     loadCart();
+    fetchSettings();
     setLoading(false);
   }, []);
 
   const loadCart = () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartItems(cart);
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('https://api.mattressmarket.ng/api/settings/');
+      const data = await response.json();
+      setSettings(data);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
   };
 
   const updateQuantity = (variantId, newQuantity) => {
@@ -52,8 +64,22 @@ export default function CartPage() {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  const getShippingFee = () => {
+    if (!settings) return 0;
+    
+    const subtotal = getSubtotal();
+    
+    // Free if threshold is 0 or subtotal exceeds threshold
+    if (parseFloat(settings.free_shipping_threshold) === 0 || 
+        subtotal >= parseFloat(settings.free_shipping_threshold)) {
+      return 0;
+    }
+    
+    return parseFloat(settings.shipping_fee || 0);
+  };
+
   const getTotal = () => {
-    return getSubtotal();
+    return getSubtotal() + getShippingFee();
   };
 
   if (loading) {
@@ -95,7 +121,6 @@ export default function CartPage() {
         {cartItems.length === 0 ? (
           /* Empty Cart */
           <div className="text-center py-5">
-            {/* This is the corrected line */}
             <div className="mb-4" style={{ fontSize: '4rem' }}>🛒</div>
             <h2 className="mb-3">Your cart is empty</h2>
             <p className="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
@@ -193,7 +218,13 @@ export default function CartPage() {
                     </li>
                     <li className="list-group-item d-flex justify-content-between">
                       <span>Shipping</span>
-                      <span className="text-muted">Calculated at checkout</span>
+                      <strong>
+                        {getShippingFee() === 0 ? (
+                          <span className="text-success">Free</span>
+                        ) : (
+                          `${CURRENCY}${Number(getShippingFee()).toLocaleString()}`
+                        )}
+                      </strong>
                     </li>
                     <li className="list-group-item d-flex justify-content-between">
                       <strong>Total</strong>
