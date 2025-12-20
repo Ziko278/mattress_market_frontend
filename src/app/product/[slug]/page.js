@@ -74,7 +74,6 @@ export default function ProductDetailPage() {
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       setIsInCart(false);
       window.dispatchEvent(new Event('cartUpdated'));
-      alert('Removed from cart!');
     } else {
       const existingIndex = cart.findIndex(
         (item) => item.variant_id === selectedVariant.id
@@ -98,7 +97,6 @@ export default function ProductDetailPage() {
       localStorage.setItem('cart', JSON.stringify(cart));
       setIsInCart(true);
       window.dispatchEvent(new Event('cartUpdated'));
-      alert('Added to cart!');
     }
   };
 
@@ -109,7 +107,7 @@ export default function ProductDetailPage() {
         ...reviewForm,
         product: product.id,
       });
-      alert('Review submitted for approval!');
+      //alert('Review submitted for approval!');
       setReviewForm({
         customer_name: '',
         email: '',
@@ -118,7 +116,7 @@ export default function ProductDetailPage() {
       });
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review');
+      //alert('Failed to submit review');
     }
   };
 
