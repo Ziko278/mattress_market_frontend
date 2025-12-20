@@ -12,7 +12,7 @@ export default function BuyersGuide() {
 
   const carouselImages = [
     'https://vitafoamabuja.com.ng/media/images/product/vitagrand2x-510x510.jpg',
-    'https://vitafoamabuja.com.ng/media/images/product/spring-firm2x-510x510.jpg',
+    'https://wincofoam.com/wp-content/uploads/2025/07/winco-porsche-123.jpg',
     'https://vitafoamabuja.com.ng/media/images/product/Sizzler-510x316.jpg',
   ];
 
@@ -116,6 +116,25 @@ export default function BuyersGuide() {
           </div>
         </div>
 
+        {/* Weight Selection Section */}
+        <div className="mt-8 bg-purple-50 rounded-2xl p-8 border border-purple-100">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Select Your Weight Range</h3>
+          <div className="max-w-md mx-auto">
+            <select
+              onChange={(e) => handleWeightClick(e.target.value)}
+              className="w-full px-4 py-3 text-lg border-2 border-purple-200 rounded-xl focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-white text-gray-800 cursor-pointer hover:border-purple-300"
+              defaultValue=""
+            >
+              <option value="" disabled>Choose your weight range...</option>
+              {weights.map((weight, index) => (
+                <option key={index} value={weight.id}>
+                  {weight.weight} {weight.description ? `- ${weight.description}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Info Section */}
         <div className="mt-8 bg-purple-50 rounded-2xl p-8 border border-purple-100">
           <div className="flex items-start">
@@ -145,24 +164,7 @@ export default function BuyersGuide() {
           </div>
         </div>
 
-        {/* Weight Selection Section */}
-        <div className="mt-8 bg-purple-50 rounded-2xl p-8 border border-purple-100">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Select Your Weight Range</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {weights.map((weight, index) => (
-              <button
-                key={index}
-                onClick={() => handleWeightClick(weight.id)}
-                className="bg-white border-2 border-purple-200 rounded-xl p-4 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                <div className="text-lg font-semibold text-gray-800">{weight.weight}</div>
-                {weight.description && (
-                  <div className="text-sm text-gray-600 mt-1">{weight.description}</div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        
       </div>
     </section>
   );
