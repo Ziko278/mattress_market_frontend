@@ -58,7 +58,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary to-blue-900 text-white py-20">
           <div className="container mx-auto px-6 md:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">About MattressMarket</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">About Mattress Market</h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto">
               Your trusted partner for quality sleep solutions across Nigeria
             </p>
@@ -71,25 +71,31 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-darkGray mb-6">
-                  Our Story
+                  About Us – Mattress Market
                 </h2>
                 <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
                   <p>
-                    Founded with a simple mission: to make quality mattresses accessible to
-                    everyone in Nigeria. We understand that a good night's sleep is essential
-                    for health, productivity, and overall well-being.
+                    At Mattress Market, we believe quality sleep is the foundation of a healthy, productive life. 
+                    That’s why we’ve dedicated ourselves to providing Nigerians
+                     with easy access to the best mattress brands in the country—all in one trusted marketplace.
                   </p>
                   <p>
-                    MattressMarket was born from the frustration of limited options and
-                    inconvenient shopping experiences. We saw people struggling to find
-                    quality mattresses without having to visit multiple stores or deal with
-                    pushy salespeople.
+                    As a leading retailer of premium sleep products, Mattress Market proudly offers a wide collection 
+                    from Nigeria’s most reputable brands, including Vitafoam, Mouka Foam, and Winco Foam. Whether 
+                    you’re looking for comfort, durability, orthopedic support, or luxury, we curate
+                     only the finest options to ensure every customer finds the perfect mattress for their unique needs.
+                  </p>
+
+                  <p>
+                    Our commitment goes beyond selling mattresses. We are passionate about helping 
+                    individuals and families create comfortable and restful spaces. With a 
+                    customer-first approach, competitive pricing, and a seamless shopping experience,
+                     we make bedding purchases simple, reliable, and stress-free.
+
                   </p>
                   <p>
-                    Today, we've partnered with leading mattress brands like Vitafoam, Mouka,
-                    and Winco to bring you the best selection online. We've delivered
-                    thousands of mattresses across Nigeria, helping families sleep better
-                    every night.
+                    At Mattress Market, your comfort is our mission—and quality is our promise.
+                    Sleep better. Live better.
                   </p>
                 </div>
               </div>
@@ -101,7 +107,7 @@ export default function AboutPage() {
                   <p className="text-gray-600">Happy Customers</p>
                   <div className="mt-8 grid grid-cols-3 gap-6">
                     <div>
-                      <p className="text-3xl font-bold text-secondary">500+</p>
+                      <p className="text-3xl font-bold text-secondary">200+</p>
                       <p className="text-sm text-gray-600">Products</p>
                     </div>
                     <div>
@@ -109,8 +115,8 @@ export default function AboutPage() {
                       <p className="text-sm text-gray-600">Support</p>
                     </div>
                     <div>
-                      <p className="text-3xl font-bold text-primary">15+</p>
-                      <p className="text-sm text-gray-600">Brands</p>
+                      <p className="text-3xl font-bold text-primary">10+</p>
+                      <p className="text-sm text-gray-600">Years Experience</p>
                     </div>
                   </div>
                 </div>
@@ -147,7 +153,7 @@ export default function AboutPage() {
         </section>
 
         {/* Team Section */}
-        <section className="py-16">
+        {/* <section className="py-16">
           <div className="container mx-auto px-6 md:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-darkGray mb-4">
@@ -176,7 +182,7 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Why Choose Us Section */}
         <section className="py-16 bg-gradient-to-r from-primary to-blue-900 text-white">
