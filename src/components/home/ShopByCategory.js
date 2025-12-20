@@ -22,6 +22,14 @@ export default function ShopByCategory() {
     fetchCategories();
   }, []);
 
+  const toTitleCase = (str) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   if (loading) {
     return (
       <section className="py-16">
@@ -79,13 +87,12 @@ export default function ShopByCategory() {
               </div>
 
               {/* Category Info */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                <h3 className="text-lg font-bold mb-1 group-hover:text-secondary transition-colors duration-300">
-                  {category.title}
-                </h3>
-                {/* <p className="text-sm text-gray-200">
-                  {category.product_count || 0} Products
-                </p> */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg">
+                  <h3 className="text-lg font-bold text-white group-hover:text-secondary transition-colors duration-300">
+                    {toTitleCase(category.title)}
+                  </h3>
+                </div>
               </div>
 
               {/* Hover Effect */}
