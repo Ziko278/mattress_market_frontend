@@ -13,7 +13,7 @@ export default function BuyersGuide() {
   const carouselImages = [
     'https://vitafoamabuja.com.ng/media/images/product/vitagrand2x-510x510.jpg',
     'https://wincofoam.com/wp-content/uploads/2025/07/winco-porsche-123.jpg',
-    'https://vitafoamabuja.com.ng/media/images/product/Sizzler-510x316.jpg',
+    'https://res.cloudinary.com/ddzaz5fjq/image/upload/c_fit,e_sharpen:200,h_880,q_auto:best,w_880/v1/mouka-cloud-mattress/stagingproduct/325/rp5awkz3q7jrf5uz40w9.webp',
   ];
 
   useEffect(() => {

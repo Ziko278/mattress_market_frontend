@@ -58,9 +58,9 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="text-center mt-10">
-          <a href="/shop?is_featured=true"
+          <a href="/shop"
             className="inline-block bg-primary hover:bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105">
-            View All Featured Products
+            View All Products
           </a>
         </div>
       </div>

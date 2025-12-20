@@ -303,9 +303,9 @@ function ShopContent() {
               </button>
 
               <div className="d-flex align-items-center">
-                <p className="mb-0 me-3 text-muted">
+                {/* <p className="mb-0 me-3 text-muted">
                   {products.length > 0 ? `${products.length} products found` : 'No products found'}
-                </p>
+                </p> */}
                 <div className="d-flex align-items-center">
                   <label className="form-label mb-0 me-2 text-muted">Sort by:</label>
                   <select
