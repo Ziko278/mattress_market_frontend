@@ -386,7 +386,7 @@ export default function ContactPage() {
               {[
                 {
                   q: 'Do you offer delivery?',
-                  a: 'Yes! We offer same-day delivery within Lagos and next-day delivery nationwide.',
+                  a: 'Yes! We offer same-day delivery within Abuja Only.',
                 },
                 {
                   q: 'Can I pay on delivery?',
@@ -396,10 +396,7 @@ export default function ContactPage() {
                   q: 'Are your products authentic?',
                   a: '100% yes. We only work with authorized distributors and guarantee authenticity.',
                 },
-                {
-                  q: 'What is your return policy?',
-                  a: 'We offer a 30-day return policy on all products. Contact us for more details.',
-                },
+                
               ].map((faq, index) => (
                 <details
                   key={index}
