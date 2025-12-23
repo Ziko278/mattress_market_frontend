@@ -41,6 +41,9 @@ export default function RootLayout({ children }) {
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
           strategy="afterInteractive"
         />
+ 
+        <script src="https://js.paystack.co/v1/inline.js"></script>
+        <script src="https://checkout.flutterwave.com/v3.js"></script>
       </body>
     </html>
   );

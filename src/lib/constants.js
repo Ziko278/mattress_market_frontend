@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL =  'https://api.mattressmarket.ng/api'; // 'http://localhost:8000/api' //
+export const API_BASE_URL =   'http://localhost:8000/api' // 'https://api.mattressmarket.ng/api'; //
 // Color Scheme
 export const COLORS = {
   primary: '#1e3a8a',      // Deep Blue

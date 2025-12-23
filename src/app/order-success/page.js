@@ -109,9 +109,7 @@ function OrderSuccessContent() {
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-2">Shipping Address</h3>
               <p className="text-gray-700">{order.shipping_address ?? '—'}</p>
-              <p className="text-gray-700">
-                {order.city ?? '—'}, {order.state ?? '—'}
-              </p>
+             
             </div>
 
             <div className="mb-6">

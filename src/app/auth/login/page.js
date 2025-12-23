@@ -118,20 +118,20 @@ export default function LoginPage() {
             </form>
 
             {/* Divider */}
-            <div className="relative my-6">
+            {/* <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Social Login (Placeholder) */}
-            <button className="w-full border-2 border-gray-300 hover:border-primary py-3 rounded-lg font-semibold text-gray-700 transition-all duration-300 flex items-center justify-center gap-2">
+            {/* <button className="w-full border-2 border-gray-300 hover:border-primary py-3 rounded-lg font-semibold text-gray-700 transition-all duration-300 flex items-center justify-center gap-2">
               <span>🔐</span>
               <span>Login with Google</span>
-            </button>
+            </button> */}
 
             {/* Register Link */}
             <p className="text-center mt-6 text-gray-600">

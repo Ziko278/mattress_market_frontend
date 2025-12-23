@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const [settings, setSettings] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
@@ -42,6 +42,7 @@ export default function CheckoutPage() {
 
     // Fetch settings
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const fetchUserProfile = async (token) => {
@@ -53,7 +54,7 @@ export default function CheckoutPage() {
       });
       const data = await response.json();
       setUserProfile(data);
-      
+
       // Pre-fill form with user data
       setFormData({
         customer_name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username || '',
@@ -118,15 +119,15 @@ export default function CheckoutPage() {
 
   const getShippingFee = () => {
     if (!settings) return 0;
-    
+
     const subtotal = getSubtotal();
-    
+
     // Free if threshold is 0 or subtotal exceeds threshold
-    if (parseFloat(settings.free_shipping_threshold) === 0 || 
-        subtotal >= parseFloat(settings.free_shipping_threshold)) {
+    if (parseFloat(settings.free_shipping_threshold) === 0 ||
+      subtotal >= parseFloat(settings.free_shipping_threshold)) {
       return 0;
     }
-    
+
     return parseFloat(settings.shipping_fee || 0);
   };
 
@@ -134,17 +135,15 @@ export default function CheckoutPage() {
     return getSubtotal() + getShippingFee();
   };
 
+  // ---------- REPLACED handleSubmit (robust + defensive) ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      // Prepare order items
       const items = cartItems.map((item) => ({
         product_variant: item.variant_id,
         product_name: item.product_name,
@@ -153,28 +152,47 @@ export default function CheckoutPage() {
         quantity: item.quantity,
       }));
 
-      // Create order
       const orderData = {
         ...formData,
+        payment_method: formData.payment_method, // ensure it's sent
         total_amount: getTotal(),
         items,
       };
 
+      // Create order
       const response = await apiService.createOrder(orderData);
 
-      // Clear cart
-      localStorage.setItem('cart', JSON.stringify([]));
-      window.dispatchEvent(new Event('cartUpdated'));
+      // Safe unwrap - support axios or fetch wrappers
+      const payload = response?.data ?? response;
 
-      // Redirect to success page with order ID
-      router.push(`/order-success?order_id=${response.data.order_id}`);
-    } catch (error) {
-      console.error('Error creating order:', error);
-      alert('Failed to create order. Please try again.');
+      console.log('createOrder payload:', payload);
+
+      if (!payload) {
+        throw new Error('Empty response from server');
+      }
+
+      const createdOrder = payload.order ?? payload;
+      const paymentRequired = Boolean(payload.payment_required);
+
+      if (!paymentRequired || formData.payment_method === 'pay_on_delivery') {
+        // For pay on delivery: email already sent by backend.
+        localStorage.setItem('cart', JSON.stringify([]));
+        window.dispatchEvent(new Event('cartUpdated'));
+        router.push(`/order-success?order_id=${createdOrder.order_id}`);
+        return;
+      }
+
+      // Online payment: save pending order and go to payment page
+      sessionStorage.setItem('pending_order', JSON.stringify(createdOrder));
+      router.push(`/payment?order_id=${createdOrder.order_id}`);
+    } catch (err) {
+      console.error('Error creating order:', err);
+      alert('Failed to create order. Check console/network and try again.');
     } finally {
       setLoading(false);
     }
   };
+  // ---------- END handleSubmit replacement ----------
 
   if (cartItems.length === 0) {
     return null; // Will redirect in useEffect
@@ -188,6 +206,11 @@ export default function CheckoutPage() {
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-darkGray mb-2">Checkout</h1>
             <p className="text-gray-600">Complete your order</p>
+            {isLoggedIn && userProfile && (
+              <p className="text-sm text-success mt-2">
+                ✓ Logged in as {userProfile.username} - Your details have been pre-filled
+              </p>
+            )}
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -413,6 +436,8 @@ export default function CheckoutPage() {
                         <span className="animate-spin">⏳</span>
                         Processing...
                       </span>
+                    ) : formData.payment_method === 'online' ? (
+                      'Proceed to Payment'
                     ) : (
                       'Place Order'
                     )}

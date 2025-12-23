@@ -343,10 +343,10 @@ export default function ProductDetailPage() {
                   <span className="text-2xl">{isInCart ? '🗑️' : '🛒'}</span>
                   {isInCart ? 'Remove from Cart' : 'Add to Cart'}
                 </button>
-                <button className="sm:w-auto px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-2xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
+                {/* <button className="sm:w-auto px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-2xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
                   <span className="text-xl">❤️</span>
                   <span className="hidden sm:inline">Wishlist</span>
-                </button>
+                </button> */}
               </div>
 
               {/* Contact Options */}
