@@ -1,7 +1,6 @@
 // app/layout.js
 import Script from 'next/script';
 import "./globals.css";
-import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata = {
   title: "MattressMarket - Premium Mattresses Online",
@@ -27,7 +26,17 @@ export default function RootLayout({ children }) {
 
       <body className="antialiased">
         {children}
-        <WhatsAppButton />
+        
+        {/* Fixed WhatsApp Button */}
+        <a 
+          href="https://api.whatsapp.com/send/?phone=%2B2347011680725&text&type=phone_number&app_absent=0" 
+          className="whatsapp-float"
+          target="_blank" 
+          rel="noopener noreferrer"
+          aria-label="Contact us on WhatsApp"
+        >
+          <i className="bi bi-whatsapp"></i>
+        </a>
 
         {/*
           Load bootstrap JS bundle after interactive
