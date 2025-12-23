@@ -112,7 +112,7 @@ function PaymentContent() {
 
     try {
       const handler = window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_4ec24c6ca84c59314a1a5dfae74bf9d1b7ba2ccc',
+        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_live_7938b6781d9c6425a1cfa2a07ebeb1bccca03d62',
         email: order.customer_email,
         amount: Math.round(Number(order.total_amount) * 100),
         currency: 'NGN',
@@ -283,7 +283,7 @@ function PaymentContent() {
                 <span className="text-primary font-semibold">→</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={handleFlutterwavePayment}
                 disabled={processing}
                 className="w-full flex items-center justify-between p-4 border-2 border-gray-300 rounded-lg hover:border-primary hover:bg-blue-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -296,7 +296,7 @@ function PaymentContent() {
                   </div>
                 </div>
                 <span className="text-primary font-semibold">→</span>
-              </button>
+              </button> */}
             </div>
           </div>
 
