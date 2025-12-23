@@ -1,7 +1,6 @@
 // app/layout.js
 import Script from 'next/script';
 import "./globals.css";
-import FixedWhatsAppButton from '@/components/FixedWhatsAppButton';
 
 export const metadata = {
   title: "MattressMarket - Premium Mattresses Online",
@@ -23,40 +22,46 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
         />
-        <style jsx global>{`
-          .whatsapp-float {
-            position: fixed;
-            width: 60px;
-            height: 60px;
-            bottom: 30px;
-            left: 30px;
-            background-color: #25d366;
-            color: white;
-            border-radius: 50px;
-            text-align: center;
-            font-size: 30px;
-            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-          }
-          
-          .whatsapp-float:hover {
-            transform: scale(1.1);
-            background-color: #128C7E;
-          }
-          
-          .whatsapp-float i {
-            margin-top: 0;
-          }
-        `}</style>
       </head>
 
       <body className="antialiased">
         {children}
-        <FixedWhatsAppButton />
+
+        {/* Fixed WhatsApp Button */}
+        <a 
+          href="https://api.whatsapp.com/send/?phone=%2B2347011680725&text&type=phone_number&app_absent=0" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{
+            position: 'fixed',
+            width: '60px',
+            height: '60px',
+            bottom: '30px',
+            left: '30px',
+            backgroundColor: '#25d366',
+            color: 'white',
+            borderRadius: '50px',
+            textAlign: 'center',
+            fontSize: '30px',
+            boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.4)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'scale(1.1)';
+            e.target.style.backgroundColor = '#128C7E';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'scale(1)';
+            e.target.style.backgroundColor = '#25d366';
+          }}
+          aria-label="Contact us on WhatsApp"
+        >
+          <i className="bi bi-whatsapp"></i>
+        </a>
 
         {/*
           Load bootstrap JS bundle after interactive
