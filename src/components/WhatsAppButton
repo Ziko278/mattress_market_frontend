@@ -1,13 +1,39 @@
 // components/WhatsAppButton.js
 'use client';
 
+import { useState } from 'react';
+
 export default function WhatsAppButton() {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const buttonStyle = {
+    position: 'fixed',
+    width: '60px',
+    height: '60px',
+    bottom: '30px',
+    left: '30px',
+    backgroundColor: isHovered ? '#128C7E' : '#25d366',
+    color: 'white',
+    borderRadius: '50px',
+    textAlign: 'center',
+    fontSize: '30px',
+    boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.4)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.3s ease',
+    transform: isHovered ? 'scale(1.1)' : 'scale(1)'
+  };
+
   return (
     <a 
       href="https://api.whatsapp.com/send/?phone=%2B2347011680725&text&type=phone_number&app_absent=0" 
       target="_blank" 
       rel="noopener noreferrer"
-      className="whatsapp-float"
+      style={buttonStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       aria-label="Contact us on WhatsApp"
     >
       <i className="bi bi-whatsapp"></i>
