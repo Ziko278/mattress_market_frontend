@@ -19,6 +19,15 @@ export default function RootLayout({ children }) {
         Next.js will ensure these <link> tags are rendered correctly.
       */}
       <head>
+       
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17825757644"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'AW-17825757644');
+        </script>
         {/* 1. Bootstrap CSS CDN */}
         <link 
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
