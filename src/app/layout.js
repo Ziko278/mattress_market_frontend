@@ -1,6 +1,7 @@
 // app/layout.js
 import Script from 'next/script';
 import "./globals.css";
+import FixedWhatsAppButton from '@/components/FixedWhatsAppButton';
 
 export const metadata = {
   title: "MattressMarket - Premium Mattresses Online",
@@ -22,10 +23,40 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
         />
+        <style jsx global>{`
+          .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            left: 30px;
+            background-color: #25d366;
+            color: white;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+          }
+          
+          .whatsapp-float:hover {
+            transform: scale(1.1);
+            background-color: #128C7E;
+          }
+          
+          .whatsapp-float i {
+            margin-top: 0;
+          }
+        `}</style>
       </head>
 
       <body className="antialiased">
         {children}
+        <FixedWhatsAppButton />
 
         {/*
           Load bootstrap JS bundle after interactive

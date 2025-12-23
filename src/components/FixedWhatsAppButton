@@ -1,0 +1,19 @@
+// components/FixedWhatsAppButton.js
+import React from 'react';
+import Link from 'next/link';
+
+const FixedWhatsAppButton = () => {
+  return (
+    <Link 
+      href="https://api.whatsapp.com/send/?phone=%2B2347011680725&text&type=phone_number&app_absent=0" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="whatsapp-float"
+      aria-label="Contact us on WhatsApp"
+    >
+      <i className="bi bi-whatsapp"></i>
+    </Link>
+  );
+};
+
+export default FixedWhatsAppButton;
