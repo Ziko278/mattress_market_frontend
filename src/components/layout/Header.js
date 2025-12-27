@@ -315,6 +315,7 @@ export default function Header() {
 
                 <li><Link href="/brands" onClick={closeMenusAndNavigate}>Brands</Link></li>
                 <li><Link href="/blog" onClick={closeMenusAndNavigate}>Blog</Link></li>
+                <li><Link href="/buyers-guide" onClick={closeMenusAndNavigate}>Buyers Guide</Link></li>
                 <li><Link href="/about" onClick={closeMenusAndNavigate}>About Us</Link></li>
                 <li><Link href="/contact" onClick={closeMenusAndNavigate}>Contact</Link></li>
               </ul>
