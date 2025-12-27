@@ -11,6 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <meta name="google-site-verification" content="v4nEQi8CWrd_qjypK30CA6jTpC8EgCLBxsL1mtPvlCI" />
         {/* Analytics script tag loader (keeps it in head but does not execute JS until afterInteractive) */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
