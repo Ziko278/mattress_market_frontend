@@ -198,7 +198,7 @@ function ShopContent() {
                   >
                     <option value="">All Categories</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={cat.id} value={cat.title}>
                         {cat.title}
                       </option>
                     ))}
@@ -214,7 +214,7 @@ function ShopContent() {
                   >
                     <option value="">All Brands</option>
                     {brands.map((brand) => (
-                      <option key={brand.id} value={brand.id}>
+                      <option key={brand.id} value={brand.name}>
                         {brand.name}
                       </option>
                     ))}
@@ -230,7 +230,7 @@ function ShopContent() {
                   >
                     <option value="">All Weights</option>
                     {weights.map((weight) => (
-                      <option key={weight.id} value={weight.id}>
+                      <option key={weight.id} value={weight.weight}>
                         {weight.weight}
                       </option>
                     ))}
