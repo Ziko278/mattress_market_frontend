@@ -281,10 +281,10 @@ export default function Header() {
                       <div className="row g-3 p-3">
                         {categories.slice(0, 8).map((cat) => (
                           <div key={cat.id} className="col-lg-3 col-md-4 mb-3">
-                            <Link href={`/shop?category=${cat.id}`} className="card border-0 shadow-sm h-100 text-decoration-none" onClick={closeMenusAndNavigate}>
+                            <Link href={`/shop?category=${encodeURIComponent(cat.title)}`} className="card border-0 shadow-sm h-100 text-decoration-none" onClick={closeMenusAndNavigate}>
                               <div className="position-relative" style={{height: '150px', overflow: 'hidden'}}>
                                 <img 
-                                  src={cat.image || '/assets/img/category-placeholder.jpg'} 
+                                  src={cat.image || '/asses/img/category-placeholder.jpg'} 
                                   alt={cat.title} 
                                   className="w-100 h-100 object-fit-cover"
                                 />
@@ -307,7 +307,7 @@ export default function Header() {
                   <ul className="mobile-megamenu">
                     {categories.map((cat) => (
                       <li key={cat.id}>
-                        <Link href={`/shop?category=${cat.id}`} onClick={closeMenusAndNavigate}>{cat.title}</Link>
+                        <Link href={`/shop?category=${encodeURIComponent(cat.title)}`} onClick={closeMenusAndNavigate}>{cat.title}</Link>
                       </li>
                     ))}
                   </ul>

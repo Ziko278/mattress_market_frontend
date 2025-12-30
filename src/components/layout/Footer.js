@@ -75,7 +75,7 @@ export default function Footer() {
               <ul style={{listStyleType: 'none', paddingLeft: '200', textAlign: 'left'}}>
                 {categories.slice(0, 6).map((cat) => (
                   <li key={cat.id}>
-                    <Link href={`/shop?category=${cat.id}`}>{cat.title}</Link>
+                    <Link href={`/shop?category=${encodeURIComponent(cat.title)}`}>{cat.title}</Link>
                   </li>
                 ))}
               </ul>

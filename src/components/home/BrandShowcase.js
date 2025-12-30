@@ -55,7 +55,7 @@ export default function BrandShowcase() {
           {brands.map((brand) => (
             <Link
               key={brand.id}
-              href={`/shop?brand=${brand.id}`}
+              href={`/shop?brand=${encodeURIComponent(brand.name)}`}
               className="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all duration-300 flex items-center justify-center"
             >
               {brand.logo ? (

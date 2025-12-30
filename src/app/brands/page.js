@@ -75,7 +75,7 @@ export default function BrandsPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {filteredBrands.map((brand) => (
-                    <Link key={brand.id} href={`/shop?brand=${brand.id}`}>
+                    <Link key={brand.id} href={`/shop?brand=${brand.name}`}>
                       <div className="group bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                         <div className="flex flex-col items-center justify-center h-full">
                           {brand.logo ? (
@@ -161,7 +161,7 @@ export default function BrandsPage() {
                 {brands.slice(0, 6).map((brand) => (
                   <Link
                     key={brand.id}
-                    href={`/shop?brand=${brand.id}`}
+                    href={`/shop?brand=${brand.name}`}
                     className="bg-white/10 backdrop-blur-sm hover:bg-white/20 px-6 py-3 rounded-lg transition-all duration-300 hover:scale-110"
                   >
                     <span className="text-white font-bold text-lg">{brand.name}</span>

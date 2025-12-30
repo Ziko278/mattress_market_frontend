@@ -127,7 +127,7 @@ export default function BuyersGuide() {
             >
               <option value="" disabled>Choose your weight range...</option>
               {weights.map((weight, index) => (
-                <option key={index} value={weight.id}>
+                <option key={index} value={weight.weight}>
                   {weight.weight} {weight.description ? `- ${weight.description}` : ''}
                 </option>
               ))}
