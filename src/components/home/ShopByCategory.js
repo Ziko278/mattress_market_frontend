@@ -72,7 +72,7 @@ export default function ShopByCategory() {
           {categories.map((category) => (
             <Link
               key={category.id}
-              href={`/shop?category=${category.id}`}
+              href={`/shop?category=${encodeURIComponent(category.title)}`}
               className="group relative overflow-hidden rounded-xl shadow-md hover:shadow-2xl transition-all duration-300"
             >
               {/* Category Image */}
