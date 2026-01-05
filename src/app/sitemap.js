@@ -1,17 +1,71 @@
-// app/sitemap.js
+// src/app/sitemap.js
 
 // Import your API configuration
 import { API_BASE_URL } from '@/lib/constants';
 
+// Function to fetch all products (handle pagination)
+async function fetchAllProducts(apiUrl) {
+  let allProducts = [];
+  let nextUrl = `${apiUrl}/products/?limit=100`; // Fetch 100 at a time
+  
+  while (nextUrl) {
+    console.log('Fetching:', nextUrl);
+    
+    const response = await fetch(nextUrl, {
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Add products from this page
+    const products = data.results || data.data || data;
+    allProducts = [...allProducts, ...products];
+    
+    // Check if there's a next page
+    nextUrl = data.next || null;
+    
+    console.log(`Fetched ${products.length} products. Total so far: ${allProducts.length}`);
+  }
+  
+  return allProducts;
+}
+
+// Function to fetch all items (generic pagination handler)
+async function fetchAllItems(url) {
+  let allItems = [];
+  let nextUrl = url;
+  
+  while (nextUrl) {
+    const response = await fetch(nextUrl, {
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+    
+    if (!response.ok) break;
+    
+    const data = await response.json();
+    const items = data.results || data.data || data;
+    allItems = [...allItems, ...items];
+    
+    nextUrl = data.next || null;
+  }
+  
+  return allItems;
+}
+
 export default async function sitemap() {
   const baseUrl = 'https://www.mattressmarket.ng';
-  const apiUrl = API_BASE_URL; // Using your constants file
+  const apiUrl = API_BASE_URL;
 
-  // Log for debugging
   console.log('🔍 Generating sitemap...');
   console.log('API URL:', apiUrl);
 
-  // Define static pages first (these will always work)
+  // Define static pages
   const staticPages = [
     {
       url: baseUrl,
@@ -46,30 +100,10 @@ export default async function sitemap() {
   ];
 
   try {
-    // Fetch products with timeout
-    console.log('Fetching products from:', `${apiUrl}/products/`);
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    const productsResponse = await fetch(`${apiUrl}/products/?limit=500`, {
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store', // Don't cache during build
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!productsResponse.ok) {
-      throw new Error(`HTTP error! status: ${productsResponse.status}`);
-    }
-
-    const productsData = await productsResponse.json();
-    const products = productsData.results || productsData.data || productsData;
-
-    console.log(`✅ Found ${products.length} products`);
+    // Fetch ALL products (handle pagination)
+    console.log('📦 Fetching all products...');
+    const products = await fetchAllProducts(apiUrl);
+    console.log(`✅ Total products fetched: ${products.length}`);
 
     // Generate product URLs
     const productUrls = products.map((product) => ({
@@ -79,58 +113,49 @@ export default async function sitemap() {
       priority: 0.8,
     }));
 
-    // Try to fetch categories (optional - won't fail sitemap if it errors)
+    // Fetch all categories
     let categoryUrls = [];
     try {
-      const categoriesResponse = await fetch(`${apiUrl}/categories/`, {
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
+      console.log('📂 Fetching categories...');
+      const categories = await fetchAllItems(`${apiUrl}/categories/`);
       
-      if (categoriesResponse.ok) {
-        const categoriesData = await categoriesResponse.json();
-        const categories = categoriesData.results || categoriesData.data || categoriesData;
-        
-        categoryUrls = categories.map((category) => ({
-          url: `${baseUrl}/shop?category=${category.id}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        }));
-        
-        console.log(`✅ Found ${categories.length} categories`);
-      }
+      categoryUrls = categories.map((category) => ({
+        url: `${baseUrl}/shop?category=${category.id}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      }));
+      
+      console.log(`✅ Found ${categories.length} categories`);
     } catch (error) {
       console.warn('⚠️ Categories fetch failed:', error.message);
     }
 
-    // Try to fetch brands (optional)
+    // Fetch all brands
     let brandUrls = [];
     try {
-      const brandsResponse = await fetch(`${apiUrl}/brands/`, {
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
+      console.log('🏷️ Fetching brands...');
+      const brands = await fetchAllItems(`${apiUrl}/brands/`);
       
-      if (brandsResponse.ok) {
-        const brandsData = await brandsResponse.json();
-        const brands = brandsData.results || brandsData.data || brandsData;
-        
-        brandUrls = brands.map((brand) => ({
-          url: `${baseUrl}/shop?brand=${brand.id}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        }));
-        
-        console.log(`✅ Found ${brands.length} brands`);
-      }
+      brandUrls = brands.map((brand) => ({
+        url: `${baseUrl}/shop?brand=${brand.id}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      }));
+      
+      console.log(`✅ Found ${brands.length} brands`);
     } catch (error) {
       console.warn('⚠️ Brands fetch failed:', error.message);
     }
 
+    // Combine all URLs
     const allUrls = [...staticPages, ...categoryUrls, ...brandUrls, ...productUrls];
-    console.log(`✅ Total sitemap URLs: ${allUrls.length}`);
+    console.log(`✅ TOTAL SITEMAP URLs: ${allUrls.length}`);
+    console.log(`   - Static pages: ${staticPages.length}`);
+    console.log(`   - Categories: ${categoryUrls.length}`);
+    console.log(`   - Brands: ${brandUrls.length}`);
+    console.log(`   - Products: ${productUrls.length}`);
     
     return allUrls;
 
@@ -138,7 +163,6 @@ export default async function sitemap() {
     console.error('❌ Error generating dynamic sitemap:', error);
     console.log('Returning static pages only as fallback');
     
-    // Return static pages as fallback
     return staticPages;
   }
 }
