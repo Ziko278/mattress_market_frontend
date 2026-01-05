@@ -43,18 +43,9 @@ export default function Footer() {
               <p>
                 Your trusted online store for premium mattresses from top brands. Quality sleep, delivered to your doorstep.
               </p>
-              <div className="social-links d-flex mt-3">
-                {siteInfo?.facebook && (
-                  <Link href={siteInfo.facebook} target="_blank" rel="noopener noreferrer"><i className="bi bi-facebook"></i></Link>
-                )}
-                {siteInfo?.instagram && (
-                  <Link href={siteInfo.instagram} target="_blank" rel="noopener noreferrer"><i className="bi bi-instagram"></i></Link>
-                )}
-                {siteInfo?.whatsapp && (
-                  <Link href={`https://wa.me/${siteInfo.whatsapp}`} target="_blank" rel="noopener noreferrer"><i className="bi bi-whatsapp"></i></Link>
-                )}
-                 {/* Add other social links if available */}
-              </div>
+              
+              
+
             </div>
 
             {/* Quick Links Column */}
@@ -84,8 +75,9 @@ export default function Footer() {
             {/* Contact Column */}
             <div className="col-lg-4 col-md-12 footer-widget footer-contact">
               <h4>Contact Us</h4>
-              <p><strong>Phone:</strong> <Link href={`tel:${siteInfo?.phone || '+1 5589 55488 55'}`}>{siteInfo?.phone || '+1 5589 55488 55'}</Link></p>
-              <p><strong>Email:</strong> <Link href={`mailto:${siteInfo?.email || 'info@example.com'}`}>{siteInfo?.email || 'info@example.com'}</Link></p>
+              <p><strong>Phone:</strong> <Link href={`tel:${siteInfo?.phone || ''}`}>{siteInfo?.phone || ''}</Link></p>
+              <p><strong>Phone:</strong> <Link href={`tel:${siteInfo?.alternate_phone || ''}`}>{siteInfo?.alternate_phone || ''}</Link></p>
+              <p><strong>Email:</strong> <Link href={`mailto:${siteInfo?.email || ''}`}>{siteInfo?.email || ''}</Link></p>
             </div>
           </div>
         </div>
