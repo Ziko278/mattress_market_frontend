@@ -119,8 +119,9 @@ export default function RootLayout({ children }) {
           Google Tag loader: the external script is loaded afterInteractive,
           and the initialization that references window.dataLayer is also run afterInteractive.
         */}
+
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17825757644"
+          src="https://www.googletagmanager.com/gtag/js?id=G-2YRJ2W0DSR"
           strategy="afterInteractive"
         />
         <Script
@@ -128,12 +129,10 @@ export default function RootLayout({ children }) {
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              // Ensure dataLayer exists and define gtag wrapper
               window.dataLayer = window.dataLayer || [];
               function gtag(){ window.dataLayer.push(arguments); }
-              // Initialize gtag
               gtag('js', new Date());
-              gtag('config', 'AW-17825757644');
+              gtag('config', 'G-2YRJ2W0DSR');
             `,
           }}
         />

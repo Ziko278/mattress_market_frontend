@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /auth/
+
+Sitemap: https://www.mattressmarket.ng/sitemap.xml
