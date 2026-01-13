@@ -75,7 +75,7 @@ export default async function sitemap() {
 
     // Generate product URLs
     const productUrls = uniqueProducts.map((product) => ({
-      url: `${baseUrl}/products/${product.slug}`,
+      url: `${baseUrl}/product/${product.slug}`,
       lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
