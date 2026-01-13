@@ -13,10 +13,11 @@ export default function Home() {
       <HeroSlider />
       <WhyBuyFromUs />
       <BuyersGuide />
+      <BrandShowcase />
       <ShopByCategory />
       <FeaturedProducts />
       <NewArrivals />
-      <BrandShowcase />
+
     </Layout>
   );
 }
