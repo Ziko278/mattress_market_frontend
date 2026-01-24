@@ -17,7 +17,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <meta name="google-site-verification" content="v4nEQi8CWrd_qjypK30CA6jTpC8EgCLBxsL1mtPvlCI" />
-
+        <meta
+            name="google-site-verification"
+            content="y2ZJOiPhxd7aFnaw5KKsdgjk24ACfnMn2N3haQXWQe0"
+          />
         {/* Bootstrap CSS (kept as in original) */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
