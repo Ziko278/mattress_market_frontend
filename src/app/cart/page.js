@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { CURRENCY } from '@/lib/constants';
@@ -104,6 +105,24 @@ export default function CartPage() {
   }
 
   return (
+  <>
+    <Head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17825757644"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17825757644');
+            `,
+          }}
+        />
+      </Head>
+
     <Layout>
       <div className="page-title">
         <div className="container">
@@ -285,5 +304,6 @@ export default function CartPage() {
         </div>
       </div>
     </Layout>
+    </>
   );
 }
