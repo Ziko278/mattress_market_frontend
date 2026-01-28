@@ -7,6 +7,20 @@ import NewArrivals from '@/components/home/NewArrivals';
 import BrandShowcase from '@/components/home/BrandShowcase';
 import BuyersGuide from '@/components/home/BuyersGuide';
 
+const titles = [
+  "Mattress Market Abuja | Premium Mattress Showroom",
+  "Mattress Store Abuja | Buy Quality Mattresses Online",
+  "Abuja Online Mattress Depot | Best Prices & Sizes",
+  "Mattress Showroom Abuja | Vitafoam, Winco & More Brands"
+];
+
+export function generateMetadata() {
+  return {
+    title: titles[Math.floor(Math.random() * titles.length)],
+    description: "Shop premium mattresses in Abuja. Vitafoam, Winco, and top brands. All sizes available. Best prices. Fast delivery across Abuja."
+  };
+}
+
 export default function Home() {
   return (
     <Layout>
