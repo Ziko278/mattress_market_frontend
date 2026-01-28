@@ -21,6 +21,26 @@ export default function RootLayout({ children }) {
             name="google-site-verification"
             content="y2ZJOiPhxd7aFnaw5KKsdgjk24ACfnMn2N3haQXWQe0"
           />
+          <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "Organization",
+                  "name": "MattressMarket Nigeria",
+                  "url": "https://www.mattressmarket.ng",
+                  "logo": "https://www.mattressmarket.ng/images/logo.png",
+                  "image": "https://www.mattressmarket.ng/images/main.jpg",
+                  "description": "Shop premium mattresses from top brands. Quality sleep delivered to your doorstep.",
+                  "telephone": "+2347011680725",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Abuja",
+                    "addressCountry": "NG"
+                  }
+                })
+              }}
+            />
         {/* Bootstrap CSS (kept as in original) */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"

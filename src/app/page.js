@@ -11,7 +11,8 @@ const titles = [
   "Mattress Market Abuja | Premium Mattress Showroom",
   "Mattress Store Abuja | Buy Quality Mattresses Online",
   "Abuja Online Mattress Depot | Best Prices & Sizes",
-  "Mattress Showroom Abuja | Vitafoam, Winco & More Brands"
+  "Mattress Showroom Abuja | Vitafoam, Winco & More Brands",
+  "Prices of Mattress in Abuja | Vitafoam, Winco & More Brands",
 ];
 
 export function generateMetadata() {
