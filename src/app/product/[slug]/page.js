@@ -8,27 +8,6 @@ import ProductCard from '@/components/shared/ProductCard';
 import { apiService } from '@/lib/api';
 import { CURRENCY } from '@/lib/constants';
 
-export async function generateMetadata({ params }) {
-  try {
-    const response = await apiService.getProductDetail(params.slug);
-    const product = response.data;
-
-    return {
-      title: `${product.name} | ${product.brand.name} - MattressMarket`,
-      description: `Buy ${product.name} by ${product.brand.name}. ${product.category.title}. Starting from ₦${Math.min(...product.variants.map(v => v.price)).toLocaleString()}. Fast delivery in Abuja.`,
-      openGraph: {
-        title: `${product.name} | ${product.brand.name}`,
-        description: product.description?.substring(0, 160),
-        images: [product.images[0]?.image],
-      },
-    };
-  } catch (error) {
-    return {
-      title: 'Product Not Found - MattressMarket',
-    };
-  }
-}
-
 export default function ProductDetailPage() {
   const params = useParams();
   const [product, setProduct] = useState(null);
