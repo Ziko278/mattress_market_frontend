@@ -20,6 +20,8 @@ export default function CheckoutPage() {
     customer_phone: '',
     shipping_address: '',
     payment_method: 'pay_on_delivery',
+    expected_delivery_date: '',
+  expected_delivery_time: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -107,6 +109,14 @@ export default function CheckoutPage() {
 
     if (!formData.shipping_address.trim()) {
       newErrors.shipping_address = 'Shipping address is required';
+    }
+
+    if (!formData.expected_delivery_date) {
+      newErrors.expected_delivery_date = 'Please select a delivery date';
+    }
+
+    if (!formData.expected_delivery_time) {
+      newErrors.expected_delivery_time = 'Please select a delivery time';
     }
 
     setErrors(newErrors);
@@ -310,6 +320,54 @@ export default function CheckoutPage() {
                       ></textarea>
                       {errors.shipping_address && (
                         <p className="text-red-500 text-sm mt-1">{errors.shipping_address}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expected Delivery */}
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <h2 className="text-xl font-bold text-darkGray mb-6">Expected Delivery</h2>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Delivery Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="expected_delivery_date"
+                        value={formData.expected_delivery_date}
+                        onChange={handleInputChange}
+                        min={new Date().toISOString().split('T')[0]}
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors duration-300 ${
+                          errors.expected_delivery_date
+                            ? 'border-red-500'
+                            : 'border-gray-300 focus:border-primary'
+                        }`}
+                      />
+                      {errors.expected_delivery_date && (
+                        <p className="text-red-500 text-sm mt-1">{errors.expected_delivery_date}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Delivery Time *
+                      </label>
+                      <input
+                          type="time"
+                          name="expected_delivery_time"
+                          value={formData.expected_delivery_time}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors duration-300 ${
+                            errors.expected_delivery_time
+                              ? 'border-red-500'
+                              : 'border-gray-300 focus:border-primary'
+                          }`}
+                        />
+                      {errors.expected_delivery_time && (
+                        <p className="text-red-500 text-sm mt-1">{errors.expected_delivery_time}</p>
                       )}
                     </div>
                   </div>
