@@ -34,7 +34,7 @@ export default function BrandsPage() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary to-blue-900 text-white py-20">
           <div className="container mx-auto px-6 md:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Brands</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Mattress Brands</h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto">
               Shop from Nigeria's most trusted mattress brands
             </p>
