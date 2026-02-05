@@ -57,6 +57,7 @@ export default function Footer() {
                 <li><Link href="/about">About Us</Link></li>
                 <li><Link href="/contact">Contact</Link></li>
                 <li><Link href="/track-order">Track Order</Link></li>
+                <li><Link href="/return-policy">Return Policy</Link></li>
               </ul>
             </div>
 
@@ -93,7 +94,7 @@ export default function Footer() {
             </div>
             <div className="col-md-6">
               <div className="credits">
-                Designed by <Link href="">Balablu Tech Limited</Link>
+                Designed by <Link href="https://balablutech.com">Balablu Tech Limited</Link>
               </div>
             </div>
           </div>
